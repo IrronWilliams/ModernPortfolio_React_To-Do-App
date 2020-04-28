@@ -282,7 +282,7 @@ using the dot context. This is an example showing possibility of having dynamic 
 <h1></h1> are displayed. 
 
     function App() {
-    const date = new Date(2018, 6, 31, 15)  -> providing arguments for year, month, day, hours (24 hours schedule)
+    const date = new Date(2018, 6, 31, 15)  -> providing arguments for year, month, day, hour (24 hours schedule)
     const hours = date.getHours()
     let timeOfDay
     const styles = {
@@ -308,8 +308,29 @@ using the dot context. This is an example showing possibility of having dynamic 
 ____________________________________________________________________________________________________________________________________
 8. REACT PROPS PART1: UNDERSTANDING 
 
+A discussion about basic html maybe helpful explaining the concept of props. The 3 elements inside the body, anchor, input and image, need
+additional context/info in order for them to work. Anchor tags need an href for them to make sense. In this way, the html spec can find
+find the anchor tag once and allow me(programmer) the ability to change the place where the links sends user. An image element needs a 
+source in order to function correctly, whether its a path to a local file or a url to an image hosted online. With anchors and images, the
+href and source properties respectively are required. Inputs do not require anything. Input <input /> will technically show an input on the 
+page. But can beef up input by adding additional properties, such as the placeholder property, name property, type property. The type 
+property is interesting because it allows for multiple different things such as a radial button, checkbox, or regular input. Regular input
+can be text, email, phone number and even a submit button. These are often called attributes but another legitimate word for them 
+is property. 
 
+    <html>
+        <head></head>
+        <body>
+            <a href="https://google.com">This is a link</a>
+            <input placeholder="First Name" name="" type=""/>
+            <img src=""/>
+        </body>
+    </html>
 
+Understanding props in React is not too difficult. Instead of using the built in html tags, since I'm creating my own components, I can
+make it so that I can allow properties to modify the way the component acts. 
+__________________________________________________________________________________________________________________________________
+9. REACT PROPS PART2: REUSABLE COMPONENTS
 
 
 
