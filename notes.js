@@ -136,6 +136,178 @@ to create an instance of Footer. From App.js, import Footer.js and after the <ma
         <p>This is where most of my content will go...</p>
     </main>
     <Footer />
+________________________________________________________________________________________________________________________________________
+5. STYLING REACT WITH CSS CLASSES
+
+There are a host of ways to style things in React.  CSS classes and CSS rules on those classes are the most familiar to me at this time. 
+Based upon Phase1 state of todaapp, if you drill down into the tree, can decide where to put classes. On index.js I am rendering an App
+component. The App component is rendering a div with 3 other components; a Header, MainContent and Footer component. Each one of the 
+components is a basic component that has a single element with syntax inside element. 
+
+Start by focusing efforts on styling the header. In html when you add a class to something, you have a property called class. Since not 
+working with html but instead working with a variation of Javascript which is JSX. Using class as a property name in JSX will not work.
+Instead, use the property className. On Header.js update the header tag with className='navbar':
+    <header className="navbar">This is the header</header>
+
+Within style.css, select the navbar (this references/connects to the property className='navbar') and style the navbar accordingly. 
+
+.navbar {
+    height: 100px;
+    background-color: #333;
+    color: whitesmoke;
+    margin-bottom: 15px;
+    text-align: center;
+    font-size: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+You can only apply the className attribute to React elements like header, paragraph or h1 and not React components. If I try to apply a 
+className to a component that I created, such as Header, MainContent, Footer, will not work as expected. Can only apply className to what
+looks like basic html. 
+
+If I am using something that requires a different level of the tree hierarchy like FlexBox or CSS Grid, where I need to know which items
+are the Flex container or Flex items, it can be tricky looking at the component to understand how this works. For example if I wanted to 
+make the following div a Flex container and wanted to specifically style one of the items therein, I will need to go to one of the 
+components and look at the elements their in in order to give them the classNames that are necessary. For example, the header element in
+Header.js will be the direct child of this div. Can think of it as React taking the contents of the Header.js component is returning and 
+replacing in the place of the Header. This is how it will end up in the DOM tree. 
+
+        <div>                                                                                  
+            <Header />                
+            <MainContent />
+            <Footer />
+        </div>
+           
+        contents of direct child will replace Header 
+        <div>
+            <header className="navbar">This is the header</header>                 
+            <MainContent />
+            <Footer />
+        </div>
+__________________________________________________________________________________________________________________________________
+6. JSX TO JAVASCRIPT AND BACK 
+
+Before moving on to inline styles and dynamic styles, need to understand how JSX and Javascript play together. How do I jump into 
+Javascript while in the middle of JSX? Solution is to surround any Javascript that I want interpreted with {}. Everything inside the {}
+will refer to vanilla Javascript variables for firstName and lastName. Without the {}, everything inside the h1 tags will literally be 
+interpreted. The <h1> begins with JSX. The {} switches to Javascript and the closing bracket ends Javascript and switches back to JSX.
+    <h1>Hello {firstName + " " + lastName}!</h1>
+    <h1>Hello {`${firstName} ${lastName}`}!</h1>  -> using `` 
+
+    function App() {
+    const firstName = "Bob"
+    const lastName = "Ziroll"
+    
+    return (
+        <h1>Hello {`${firstName} ${lastName}`}!</h1>
+    )
+    }
+    ReactDOM.render(<App />, document.getElementById("root"))
+
+Another example is creating a new date instance. Within <h1> used Javascript to get the hours and used a modula of 12 to get in a 12
+hour clock system.  
+
+    function App() {
+    const date = new Date()
+    
+    return (
+        <h1>It is currently about {date.getHours() % 12} o'clock!</h1>
+    )
+    }
+    ReactDOM.render(<App />, document.getElementById("root"))
+
+Alternatively, I can check the current hours for what time of day it is and set a string to equal morning, afternoon or night. Using 
+variable timeOfDay within an if/else to determine the time of day. In return statement, started with JSX, then switched to Javascript
+to reference the timeOfDay variable. 
+
+    function App() {
+    const date = new Date()
+    const hours = date.getHours()
+    let timeOfDay
+    
+    if (hours < 12) {
+        timeOfDay = "morning"
+    } else if (hours >= 12 && hours < 17) {
+        timeOfDay = "afternoon"
+    } else {
+        timeOfDay = "night"
+    }
+    
+    return (
+        <h1>Good {timeOfDay}!</h1>
+    )
+    }
+    ReactDOM.render(<App />, document.getElementById("root"))
+_____________________________________________________________________________________________________________________________________
+7. REACT INLINE STYLES WITH THE STYLES PROPERTY
+
+Normally to do inline styling with html, simply use a style property and set it equal to whatever CSS style I want such as the color 
+yellow which = FF8C00. This will create a problem because JSX expects the style to not be a string but instead a Javascript object. 
+    <h1 style="color: #FF8C00">Good {timeOfDay}!</h1>  -> result in an error because style is a string. 
+
+To replace string with an object is a start but will result in syntax error. Remember, anytime I want to change from JSX to Javascript, 
+I need to wrap Javascript with a set of {}. This can be confusing initially because objects are also wrapped with a set of {}. In order
+for this to work, need to wrap the object with another pair of {}.
+    <h1 style={color: "#FF8C00"}>Good {timeOfDay}!</h1>  -> result in syntax error because object is not wrapped with {}
+
+The 1st set of {} meets JSX expectation for style which is to set style = to an object. The 2nd set of {} tells React to switch from JSX
+to Javascript:
+    <h1 style={{color: "#FF8C00"}}>Good {timeOfDay}!</h1>  -> puts style in an object and switch from JSX to Javascript. 
+
+Because this is an object I can additional styles by adding another key/value pair. For example a background color of red. 
+     <h1 style={{color: "#FF8C00", backgroundColor: "#FF2D00"}}>Good {timeOfDay}!</h1>
+
+Can technically add as many additional styles but code can become unpleasant to look at. An option it to assign the object to a variable 
+called styles and within <h1> switch from JSX to Javascript by referencing the styles variable with a set of {}. As I continue
+to add styles to the styles variable, it will not clutter the <h1>. There are some tiny quirks to remember when working with style objects.
+For example, measurements in pixels can just put the number value in place and default will be pixels, such as fontSize: 20. Since in this
+is a Javascript variable, can also put in a string. There are some limitations with pseudo selectors like hover become impossible to do 
+with inline styles. Can hover by using CSS and reference class name. Or can learn about styling libraries such as Styled components. 
+
+    const styles = {
+    color: "#FF8C00", 
+    backgroundColor: "#FF2D00", 
+    fontSize: "200px" 
+  }
+  return (
+    <h1 style={styles}>Good {timeOfDay}!</h1>
+  )
+
+Why use inline styles? May want something to be more dynamic and allow Javascript to determine what the styles are. Updated program to 
+include the styles variable with a default fontsize of 30px. The if/else will determine the fontsize. If/else will not only determine the
+time of day string but also change the color property of the styles object. Because its an object, can access and create properties by
+using the dot context. This is an example showing possibility of having dynamic data (if/else) that changes the way hard coded components
+<h1></h1> are displayed. 
+
+    function App() {
+    const date = new Date(2018, 6, 31, 15)  -> providing arguments for year, month, day, hours (24 hours schedule)
+    const hours = date.getHours()
+    let timeOfDay
+    const styles = {
+        fontSize: 30
+    }
+    
+    if (hours < 12) {
+        timeOfDay = "morning"
+        styles.color = "#04756F"
+    } else if (hours >= 12 && hours < 17) {
+        timeOfDay = "afternoon"
+        styles.color = "#8914A3"
+    } else {
+        timeOfDay = "night"
+        styles.color = "#D90000"
+    }
+    
+    return (
+        <h1 style={styles}>Good {timeOfDay}!</h1>
+    )
+    }
+    ReactDOM.render(<App />, document.getElementById("root"))
+____________________________________________________________________________________________________________________________________
+8. REACT PROPS PART1: UNDERSTANDING 
+
 
 
 
