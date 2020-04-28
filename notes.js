@@ -99,11 +99,11 @@ element called footer, where footer will have all of the html related to the foo
 MyHeader can also render more than one component such as Logo and MyNavbar, which will need to end up as regular elements of some sort,
 such as an img or nav element. 
 
-App                 App                         App
+<App/>             <App/>                      <App/>
  |                   |                           |
 MyInfo             MyFooter                      MyHeader                   
  |                   |                           |      |
-<div></div>     <footer></footer>               <Logo> <MyNav)  
+<div></div>     <footer></footer>               <Logo> <MyNav>  
                                                   |      |
                                                  <img>   <nav></nav>
 
@@ -262,9 +262,9 @@ Because this is an object I can additional styles by adding another key/value pa
 Can technically add as many additional styles but code can become unpleasant to look at. An option it to assign the object to a variable 
 called styles and within <h1> switch from JSX to Javascript by referencing the styles variable with a set of {}. As I continue
 to add styles to the styles variable, it will not clutter the <h1>. There are some tiny quirks to remember when working with style objects.
-For example, measurements in pixels can just put the number value in place and default will be pixels, such as fontSize: 20. Since in this
-is a Javascript variable, can also put in a string. There are some limitations with pseudo selectors like hover become impossible to do 
-with inline styles. Can hover by using CSS and reference class name. Or can learn about styling libraries such as Styled components. 
+For example, measurements in pixels can just put the number value in place and default will be pixels, such as fontSize: 20. Since this
+is a Javascript variable, can also put in a string. There are some limitations with pseudo selectors like hover which become impossible 
+to do with inline styles. Can hover by using CSS and reference class name. Or can learn about styling libraries such as Styled components. 
 
     const styles = {
     color: "#FF8C00", 
@@ -306,16 +306,16 @@ using the dot context. This is an example showing possibility of having dynamic 
     }
     ReactDOM.render(<App />, document.getElementById("root"))
 ____________________________________________________________________________________________________________________________________
-8. REACT PROPS PART1: UNDERSTANDING 
+8. REACT PROPS PART1: UNDERSTANDING/OVERVIEW
 
-A discussion about basic html maybe helpful explaining the concept of props. The 3 elements inside the body, anchor, input and image, need
+A discussion about basic html maybe helpful explaining the concept of props. The 3 elements inside the body, (anchor, input and image) need
 additional context/info in order for them to work. Anchor tags need an href for them to make sense. In this way, the html spec can find
 find the anchor tag once and allow me(programmer) the ability to change the place where the links sends user. An image element needs a 
 source in order to function correctly, whether its a path to a local file or a url to an image hosted online. With anchors and images, the
-href and source properties respectively are required. Inputs do not require anything. Input <input /> will technically show an input on the 
-page. But can beef up input by adding additional properties, such as the placeholder property, name property, type property. The type 
-property is interesting because it allows for multiple different things such as a radial button, checkbox, or regular input. Regular input
-can be text, email, phone number and even a submit button. These are often called attributes but another legitimate word for them 
+href and source properties respectively are required. Inputs do not require anything. Input (<input />) will technically show an input 
+on the page. But can beef up input by adding additional properties, such as the placeholder property, name property, type property. The 
+type property is interesting because it allows for multiple different things such as a radial button, checkbox, or regular input. Regular 
+input can be text, email, phone number and even a submit button. These are often called attributes but another legitimate word for them 
 is property. 
 
     <html>
@@ -329,9 +329,280 @@ is property.
 
 Understanding props in React is not too difficult. Instead of using the built in html tags, since I'm creating my own components, I can
 make it so that I can allow properties to modify the way the component acts. 
-__________________________________________________________________________________________________________________________________
-9. REACT PROPS PART2: REUSABLE COMPONENTS
 
+If I critically review the Youtube homepage, the page can be divided into separate components. For example, looking at the Whats Trending 
+section, I notice each topic/image have similarities. Each one has an image on the top that takes up the same amount of space, each have 
+a bolded title positioned directly under the image, each have the number of views, # of days published and timestamp inside image that tells
+how long video is. Youtube was likely programmed in VUE because Google is the primary backer of VUE. 
+
+If page designed in React, there would likely be a VideoTile component that has a number of components inside of it such as an image, <h3>,
+timestamp box. VideoTile will be a single component that is developed once. But need to make it so that the component can change depending
+upon the different properties such as the image url or the title. 
+
+The parent/child component can go as deeply nested as I want. On the Youtube Home page, there are different lists (Brightside, Lifestyle). 
+There could be a List component which renders a number of VideoTile components which in themselves render an image ,<h3>, or timestamp box. 
+On the Best Of Youtube section (Music, Sports, Gaming), these sections may have been developed just once as a single component and given a 
+property of an image and text describing the link/image.  Web components and reusable html are really powerful.   
+__________________________________________________________________________________________________________________________________
+9. REACT PROPS 
+
+Below is a basic contact card list that shows the contacts image, name, phone and email. Can take the repeated html code and put them into
+their own components. What I know so far, I would have to create 4 separate components, 1 for each individual contact. This approach will 
+not be the most efficient. Can make a single dynamic component. 
+
+import React from "react"
+function App() {
+    return (
+        <div className="contacts">
+            <div className="contact-card">
+                <img src="http://placekitten.com/300/200"/>
+                <h3>Mr. Whiskerson</h3>
+                <p>Phone: (212) 555-1234</p>
+                <p>Email: mr.whiskaz@catnap.meow</p>
+            </div>
+            
+            <div className="contact-card">
+                <img src="http://placekitten.com/400/200"/>
+                <h3>Fluffykins</h3>
+                <p>Phone: (212) 555-2345</p>
+                <p>Email: fluff@me.com</p>
+            </div>
+            
+            <div className="contact-card">
+                <img src="http://placekitten.com/400/300"/>
+                <h3>Destroyer</h3>
+                <p>Phone: (212) 555-3456</p>
+                <p>Email: ofworlds@yahoo.com</p>
+            </div>
+            
+            <div className="contact-card">
+                <img src="http://placekitten.com/200/100"/>
+                <h3>Felix</h3>
+                <p>Phone: (212) 555-4567</p>
+                <p>Email: thecat@hotmail.com</p>
+            </div>
+        </div>
+    )
+}
+export default App
+
+To begin, create a new file called ContactCard.js. Take one of the repeated divs and copy into ContactCard and start a new component. 
+The problem is the div has a hard-coded image, h3, phone and email. Need to figure out a way that when I create separate instances of 
+the functional component ContactCard it will be able to take as properties the different info that I will put in the place of the 
+hard-coded image, h3, phone and email.  
+
+Because ContactCard is a functional component, it aligns with the overall concept of functions. If I create a function to add numbers, 
+and the function initially returns the result of 1+1. If I then want to add the numbers 2+3, I will not create a separate function to 
+manage the result of 2+3 or 7+9. Instead, I will use function parameters (a, b) and adjust function so that any 2 parameters passed into
+the function will return a different result depending on those inputs. The same concept of adding parameters to a function to allow the 
+function to be more reusable is the same thing I will be doing with React components. 
+
+function addNumbers() {                           
+    return 1 + 1
+}
+
+function addNumbers(a, b) {
+    return a + b
+}
+
+Go back to App.js. The goal is to replace all 4 individual contact cards with the individual information from each component. Begin process
+by putting the 4 ContactCard components into App.js. This creates 4 instances of ContactCard from the functional component ContactCard()
+
+import ContactCard from "./ContactCard"
+function App() {
+    return (
+        <div className="contacts">
+            <ContactCard />
+            <ContactCard />
+            <ContactCard />
+            <ContactCard />
+
+Now need to pass down individual information for each ContactCard. Each contact card has 4 pieces of dynamic info (image url/name/phone/email). 
+Begin by passing a property down for each piece of info. In other words, put each individual contact card info into properties of the 
+ContactCard component. Now have separate pieces of info in each contact card within App.js. Each of the 4 individual <ContactCard /> 
+components has been updated: 
+
+function App() {
+    return (
+        <div className="contacts">
+            <ContactCard 
+                name="Mr. Whiskerson" 
+                imgUrl="http://placekitten.com/300/200" 
+                phone="(212) 555-1234" 
+                email="mr.whiskaz@catnap.meow"
+            />
+            
+            <ContactCard 
+                name="Fluffykins" 
+                imgUrl="http://placekitten.com/400/200" 
+                phone="(212) 555-2345" 
+                email="fluff@me.com"
+            />
+            
+            <ContactCard 
+                name="Destroyer" 
+                imgUrl="http://placekitten.com/400/300" 
+                phone="(212) 555-3456" 
+                email="ofworlds@yahoo.com"
+            />
+            
+            <ContactCard 
+                name="Felix" 
+                imgUrl="http://placekitten.com/200/100" 
+                phone="(212) 555-4567" 
+                email="thecat@hotmail.com"
+            />
+            
+        </div>
+    )
+}
+
+When refreshing page, still getting the contact info for Mr.Whiskerson 4x because the ContactCard.js component still has hard-coded values 
+inside of itself:
+
+function ContactCard() {
+    return (
+        <div className="contact-card">
+            <img src="http://placekitten.com/300/200"/>
+            <h3>Mr. Whiskerson</h3>
+            <p>Phone: (212) 555-1234</p>
+            <p>Email: mr.whiskaz@catnap.meow</p>
+        </div>
+    )
+}
+
+But in App.js, I am passing in separate 'props' (name, image url, phone, email). Next step, inside of ContactCard.js, need to access the 
+data I am passing down into ContactCard within App.js.  Within ContactCard.js, the ContactCard function needs to accept a parameter, which
+will be called props. The parameter props is an object that has properties of that object, each one being a prop that I passed in or the 
+name of the prop passed in from App.js. Meaning, inside of ContactCards.js, will have props.name, props.imgUrl, props.phone, props.email. 
+(props parameter now has access to the properties passed down to ContactCard in App.js). 
+
+If I were to console.log props from ContactCard.js, I will get 4 console log entries. 
+
+function ContactCard(props) {
+    console.log(props)
+    return (
+        <div className="contact-card">
+            <img src="http://placekitten.com/300/200"/>
+            <h3>Mr. Whiskerson</h3>
+            <p>Phone: (212) 555-1234</p>
+            <p>Email: mr.whiskaz@catnap.meow</p>
+        </div>
+    )
+}
+
+Console log will return 4 console log entries, equating to 4 instances of the <ContactCard /> component from App.js. And the props are an 
+object with name, imgUrl, phone and email properties.  
+
+{name: "Mr. Whiskerson", imgUrl: "http://placekitten.com/300/200", phone: "(212) 555-1234", email: "mr.whiskaz@catnap.meow"}
+{name: "Fluffykins", imgUrl: "http://placekitten.com/400/200", phone: "(212) 555-2345", email: "fluff@me.com"}>
+{name: "Destroyer", imgUrl: "http://placekitten.com/400/300", phone: "(212) 555-3456", email: "ofworlds@yahoo.com"}
+{name: "Felix", imgUrl: "http://placekitten.com/200/100", phone: "(212) 555-4567", email: "thecat@hotmail.com"}
+
+This now means instead of hard-coding the values inside the div, I can use the property of the props object that is coming in by switching 
+from JSX to Javascript (use {} around Javascript). When refreshing page, will now get the 4 separate contact cards with respective unique
+info. In addition, now have a component that is reusable in different ways. 
+
+function ContactCard(props) {
+    return (
+        <div className="contact-card">
+            <img src={props.imgUrl}/>
+            <h3>{props.name}</h3>
+            <p>Phone: {props.phone}</p>
+            <p>Email: {props.email}</p>
+        </div>
+    )
+}
+
+What would my component look like if the contacts had 50 properties to them. In App.js, each of the contact cards will get pretty long. 
+The contact cards will have a 'prop' for each individual thing I am saving about the contact, totalling 50 different props/properties. 
+Instead of passing down each part of the contact as an individual property, an alternative approach is to pass down an object that is the
+entire contact. For example, pass down a prop called contact whose value is an object. Since going between JSX and Javascript, need to put
+{{}} curly braces, with 1st {} gets me into Javascript and the inner {} is the object itself. And that object will have properties for name,
+imgURL, phone, email. This will allow me to get rid of the 4 individual properties and pass down the single property called contact. 
+
+<div className="contacts">
+            <ContactCard 
+                contact={{name: "Mr. Whiskerson", imgUrl: "http://placekitten.com/300/200", phone: "(212) 555-1234", email: "mr.whiskaz@catnap.meow"}}
+            />
+
+This will break the component. When refreshing page the only thing that shows up for the 1st contact is the hard-coded text for phone and 
+email. This is because on ContactCard.js, ContactCard(props) function is receiving an object and told function that object will have a 
+property for imgUrl, name, phone and email. However, for the 1st contact card, no longer passing props for imgUrl, name, phone and email. 
+Instead, 1st instance is passing a prop called contact which is an object.  Console logging props will still return 4 instances of 
+the <ContactCard /> where instances 2-4 are receiving name, imgUrl, phone and email. But the 1st instance of ContactCard receives a single
+property called contact and that contact property is an object.
+
+
+{contact: {name: "Mr. Whiskerson", imgUrl: "http://placekitten.com/300/200", phone: "(212) 555-1234", email: "mr.whiskaz@catnap.meow"}}
+{name: "Fluffykins", imgUrl: "http://placekitten.com/400/200", phone: "(212) 555-2345", email: "fluff@me.com"}>
+{name: "Destroyer", imgUrl: "http://placekitten.com/400/300", phone: "(212) 555-3456", email: "ofworlds@yahoo.com"}
+{name: "Felix", imgUrl: "http://placekitten.com/200/100", phone: "(212) 555-4567", email: "thecat@hotmail.com"}
+
+
+This means I will need to update the syntax in the return statement to access the contact object via ContactCard.js
+
+function ContactCard(props) {
+    console.log(props)
+    return (
+        <div className="contact-card">
+            <img src={props.contact.imgUrl}/>
+            <h3>{props.contact.name}</h3>
+            <p>Phone: {props.contact.phone}</p>
+            <p>Email: {props.contact.email}</p>
+        </div>
+    )
+}
+
+This update will cause a problem because other components are not receiving a prop called contact, therefore its undefined and I am trying
+to access the imgURL of undefined. This means, go back to App.js and fix the remaining contact cards. Now each contact card is passing down
+a single 'prop' called contact which is an object that has all of the properties that I want. Usually, this info will not be hard-coded but 
+instead will obtain from a data file such as a JSON file.  The updated Apps.js file:
+
+import React from "react"
+import ContactCard from "./ContactCard"
+
+function App() {
+    return (
+        <div className="contacts">
+            <ContactCard 
+                contact={{name: "Mr. Whiskerson", imgUrl: "http://placekitten.com/300/200", phone: "(212) 555-1234", email: "mr.whiskaz@catnap.meow"}}
+            />
+            
+            <ContactCard 
+                contact={{name: "Fluffykins", imgUrl: "http://placekitten.com/400/200", phone: "(212) 555-2345", email: "fluff@me.com"}}
+            />
+            
+            <ContactCard
+                contact={{name: "Destroyer", imgUrl: "http://placekitten.com/400/300", phone: "(212) 555-3456", email: "ofworlds@yahoo.com"}}
+            />
+            
+            <ContactCard 
+                contact={{name: "Felix", imgUrl: "http://placekitten.com/200/100", phone: "(212) 555-4567", email: "thecat@hotmail.com"}}
+            />
+            
+        </div>
+    )
+}
+export default App
+
+In ContactCard.js, function is receiving all props as an object called props. Since only passed a single prop down in App.js, I have
+props.contact. Props.contact is an object which has properties itself like imgURL, name, phone and email. 
+
+import React from "react"
+
+function ContactCard(props) {
+    console.log(props)
+    return (
+        <div className="contact-card">
+            <img src={props.contact.imgUrl}/>
+            <h3>{props.contact.name}</h3>
+            <p>Phone: {props.contact.phone}</p>
+            <p>Email: {props.contact.email}</p>
+        </div>
+    )
+}
+export default ContactCard
 
 
 
