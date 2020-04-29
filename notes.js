@@ -860,7 +860,97 @@ const jokesData = [
 ]
 export default jokesData
 
+PRACTICE: 
+ 
+//Given a list of products (as an array of objects, as seen in productsData.js) render a <Product /> component for each product in the 
+list.Make sure to use the array's `.map()` method to create these components, and  don't forget to pass a `key` prop to it to 
+avoid the warning.
 
+productList.js file
+const products = [
+    {
+        id: "1",
+        name: "Pencil",
+        price: 1,
+        description: "Perfect for those who can't remember things! 5/5 Highly recommend."
+    },
+    {
+        id: "2",
+        name: "Housing",
+        price: 0,
+        description: "Housing provided for out-of-state students or those who can't commute"
+    },
+    {
+        id: "3",
+        name: "Computer Rental",
+        price: 300,
+        description: "Don't have a computer? No problem!"
+    },
+    {
+        id: "4",
+        name: "Coffee",
+        price: 2,
+        description: "Wake up!"
+    },
+    {
+        id: "5",
+        name: "Snacks",
+        price: 0,
+        description: "Free snacks!"
+    },
+    {
+        id: "6",
+        name: "Rubber Duckies",
+        price: 3.50,
+        description: "To help you solve your hardest coding problems."
+    },
+    {
+        id: "7",
+        name: "Fidget Spinner",
+        price: 21.99,
+        description: "Because we like to pretend we're in high school."
+    },
+    {
+        id: "8",
+        name: "Sticker Set",
+        price: 14.99,
+        description: "To prove to other devs you know a lot."
+    }
+]
+export default products
+
+Product.js file -> function will receive a nested object called product. On App.js, 'product' will be passed down as one object vs passing 
+down each individual property of the product individually as a prop. Can access the properties from the App function via 
+prop.product.propertyName. The string method toLocalString() will display as currency. 
+
+import React from "react"
+function Product(props) {
+    return (
+        <div>
+            <h2>{props.product.name}</h2>
+            <p>{props.product.price.toLocaleString("en-US", { style: "currency", currency: "USD" })} - {props.product.description}</p>
+        </div>
+    )
+}
+export default Product
+
+App.js file -> will render a number of Product components. productComponents will create an new array filled with Product components and 
+returns a product that is an item(product={item}). (this is where I am passing down the single object )
+
+import React from "react"
+import Product from "./Product"
+import productsData from "./vschoolProducts"
+
+function App() {
+    const productComponents = productsData.map(item => <Product key={item.id} product={item}/>)
+    
+    return (
+        <div>
+            {productComponents}
+        </div>
+    )
+}
+export default App
 
 
 */
