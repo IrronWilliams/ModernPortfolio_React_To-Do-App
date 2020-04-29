@@ -741,7 +741,124 @@ export default Joke
 ____________________________________________________________________________________________________________________________
 MAPPING COMPONENTS IN REACT
 
+Most of the data that will be displayed on a page will likely come from an http call to an API where there is a server that hosts a 
+database and that database and server are returning JSON data to me. Will make API requests at a later time. In meantime, jokesData.js
+is a file that contains an array variable called jokesData (variable is an array of objects). Can export the file, import it in a 
+component and pretend its data from an API. How do I take an array of raw data and turn that into a number of components? There is a common 
+saying for those that are learning React, where they say that React helps them become better Javascript Developers. The reason is because
+things like this are often handled by methods or 'magic' by other frameworks under the hood like Angular and Vue. But in React, a lot of 
+these simple operations are handled with vanilla Javascript. 
 
+This point can be made clear with higher order arrays methods. Higher order array methods are methods that I can run on an array that take
+a function as a parameter and allow me (developer) to decide exactly what should happen to the elements in the array. For example, I can 
+run a higher order method on nums called map(). Map() is a method of the nums array that takes a function as a parameter. This function 
+will receive each individual number in the array. This function will then run on every single item in the array. With map(), whatever I 
+return from my inner function will be placed with the same index into a brand new array with some kind of modification. Within my inner
+function, I return num*2, the variable doubled will result in a new array where the numbers in the array nums is doubled. 
+
+function App() {
+    const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    const doubled = nums.map(function(num) {
+        return num * 2
+    })
+    console.log(doubled)
+
+In App.js, I can use map(). Begin by importing jokesData.js and apply the same approach the the App() method. Using map and arrow function,
+the function will receive each individual joke object. Within inner function, return a <Joke /> component and pass in the data from the 
+individual joke object received my map(). 
+
+function App() {
+    jokesData.map(joke => {
+        return (
+            <Joke question={joke.question} punchLine={joke.punchLine} />
+        )
+    })
+
+Because returning a single component, can put on one line and there is an implicit return, so can remove. Map() returns a new array, can 
+save the returned array in a variable. More concise code:
+
+function App() {
+    const jokeComponents = jokesData.map(joke => <Joke question={joke.question} punchLine={joke.punchLine} />)
+    
+Now have an array of components. What to do with an array of components? React allows me to put the array of components directly in 
+JSX (within div). Revised code with array of components in JSX:
+
+import React from "react"
+import Joke from "./Joke"
+import jokesData from "./jokesData"
+
+function App() {
+    const jokeComponents = jokesData.map(joke => <Joke question={joke.question} punchLine={joke.punchLine} />)    
+    
+    return (
+        <div>
+            {jokeComponents}            
+        </div>
+    )
+}
+export default App
+
+Refresh page and jokes will appear as expected. However, will receive the following error in console:
+    Warning: Each child in an array or iterator should have a unique "key" prop. Check the render method of `App`. 
+    See https://fb.me/react-warning-keys for more information. in Joke (created by App) in App
+
+React expects a key prop on repeated components. When using a map as in this example, I should give the component that I am creating 
+over and over, ie <Joke/>, a new prop called key. With the new key prop, put something unique inside the key prop. Usually data from an 
+API will include some sort of id number or unique identifier. In this example, can use the questions because the questions are all unique. 
+But will use the id numbers as the key. Refresh page and warning goes away. Also, the App.js is much cleaner and the data comes from an 
+external file like it will in the real world. 
+
+Revised files for App.js and 
+
+App.js file
+import React from "react"
+import Joke from "./Joke"
+import jokesData from "./jokesData"
+
+function App() {
+    const jokeComponents = jokesData.map(joke => <Joke key={joke.id} question={joke.question} punchLine={joke.punchLine} />)
+        
+    return (
+        <div>
+            {jokeComponents}            
+        </div>
+    )
+}
+export default App
+
+jokesData.js file
+const jokesData = [
+    {
+        id: 1,
+        punchLine: "It’s hard to explain puns to kleptomaniacs because they always take things literally."
+    },
+    {
+        id: 2,
+        question: "What's the best thing about Switzerland?",
+        punchLine: "I don't know, but the flag is a big plus!"
+    },
+    {
+        id: 3,
+        question: "Did you hear about the mathematician who's afraid of negative numbers?",
+        punchLine: "He'll stop at nothing to avoid them!"
+    },
+    {
+        id: 4,
+        question: "Hear about the new restaurant called Karma?",
+        punchLine: "There’s no menu: You get what you deserve."
+    },
+    {
+        id: 5,
+        question: "Did you hear about the actor who fell through the floorboards?",
+        punchLine: "He was just going through a stage."
+    },
+    {
+        id: 6,
+        question: "Did you hear about the claustrophobic astronaut?",
+        punchLine: "He just needed a little space."
+    }
+]
+export default jokesData
 
 
 
