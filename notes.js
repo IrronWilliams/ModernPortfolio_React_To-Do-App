@@ -526,13 +526,12 @@ imgURL, phone, email. This will allow me to get rid of the 4 individual properti
                 contact={{name: "Mr. Whiskerson", imgUrl: "http://placekitten.com/300/200", phone: "(212) 555-1234", email: "mr.whiskaz@catnap.meow"}}
             />
 
-This will break the component. When refreshing page the only thing that shows up for the 1st contact is the hard-coded text for phone and 
+This will break the component. When refreshing page the only thing that shows on page for the 1st contact is the hard-coded text for phone and 
 email. This is because on ContactCard.js, ContactCard(props) function is receiving an object and told function that object will have a 
 property for imgUrl, name, phone and email. However, for the 1st contact card, no longer passing props for imgUrl, name, phone and email. 
 Instead, 1st instance is passing a prop called contact which is an object.  Console logging props will still return 4 instances of 
 the <ContactCard /> where instances 2-4 are receiving name, imgUrl, phone and email. But the 1st instance of ContactCard receives a single
 property called contact and that contact property is an object.
-
 
 {contact: {name: "Mr. Whiskerson", imgUrl: "http://placekitten.com/300/200", phone: "(212) 555-1234", email: "mr.whiskaz@catnap.meow"}}
 {name: "Fluffykins", imgUrl: "http://placekitten.com/400/200", phone: "(212) 555-2345", email: "fluff@me.com"}>
@@ -604,8 +603,143 @@ function ContactCard(props) {
 }
 export default ContactCard
 
+Practice 
+// Set up a React app from scratch
+// Render an <App /> component
+  // App should be in its own file
+// App should render 5 <Joke /> components
+  // Each Joke should receive a "question" prop and a "punchLine" prop and render those however you'd like
 
+Index.html file 
+<html>
+    <head>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <div id="root"></div>
+        <script src="index.pack.js"></script>
+    </body>
+</html>
 
+Index.js file
+import React from "react"
+import ReactDOM from "react-dom"
+import App from "./App"
+
+ReactDOM.render(<App />, document.getElementById("root"))
+
+App.js file
+import React from "react"
+import Joke from "./Joke"
+
+function App() {
+    return (
+        <div>
+            <Joke 
+                question="What's the best thing about Switzerland?" 
+                punchLine="I don't know, but the flag is a big plus!"/>
+            
+            <Joke 
+                question="Did you hear about the mathematician who's afraid of negative numbers?" 
+                punchLine="He'll stop at nothing to avoid them!"/>
+            
+            <Joke 
+                question="Hear about the new restaurant called Karma?" 
+                punchLine="There’s no menu: You get what you deserve."/>
+            
+            <Joke 
+                question="Did you hear about the actor who fell through the floorboards?" 
+                punchLine="He was just going through a stage."/>
+            
+            <Joke 
+                question="Did you hear about the claustrophobic astronaut?" 
+                punchLine="He just needed a little space."/>    
+        </div>
+    )
+}
+export default App
+
+Joke.js file
+import React from "react"
+
+function Joke(props) {
+    return (
+        <div>
+            <h3>Question: {props.question}</h3>
+            <h3>Answer: {props.punchLine}</h3>
+            <hr/>
+            <br/>
+        </div>
+    )
+}
+export default Joke
+
+Part2: The App.js file has been updated with another instance of Joke, where instance does not have the question property. When page is 
+refreshed, the hard coded text Question will appear w/o a question. Can updated the Joke component by adding a style display of none 
+under certain circumstances. Update the <h3> question element with a ternary operator to decide what that should be. Inside of style object
+can say 'is props.question truthy?  if so display question in regular block format otherwise display question as none. 
+    <h3 style={{display: props.question ? "block" : "none"}}>Question: {props.question}</h3>
+
+A slightly more concise but more confusing way to write this would be to not use a ternary use ! and &&. This says if there is not a
+props.question then display none, otherwise ignore this in total. 
+    <h3 style={{display: !props.question && "none"}}>Question: {props.question}</h3>
+
+Can use inline styling for punchline jokes only (jokes w/o a question. On <h3> answers add an inline style with an object that say color = 
+if there is no props.question then color should be grey)
+
+Can now start using the differing props that come into the component to display things differently. As such the joke component is reusable. 
+Can add jokes that just have punchlines and jokes that have both questions and punchlines. Automatically, the joke component knows how to
+style itself based on the incoming props. 
+
+Revised files for the App and Jokes components. 
+App.js file
+import React from "react"
+import Joke from "./Joke"
+
+function App() {
+    return (
+        <div>
+            <Joke punchLine="It’s hard to explain puns to kleptomaniacs because they always take things literally." />
+
+            <Joke 
+                question="What's the best thing about Switzerland?" 
+                punchLine="I don't know, but the flag is a big plus!"/>
+            
+            <Joke 
+                question="Did you hear about the mathematician who's afraid of negative numbers?" 
+                punchLine="He'll stop at nothing to avoid them!"/>
+            
+            <Joke 
+                question="Hear about the new restaurant called Karma?" 
+                punchLine="There’s no menu: You get what you deserve."/>
+            
+            <Joke 
+                question="Did you hear about the actor who fell through the floorboards?" 
+                punchLine="He was just going through a stage."/>
+            
+            <Joke 
+                question="Did you hear about the claustrophobic astronaut?" 
+                punchLine="He just needed a little space."/>    
+        </div>
+    )
+}
+export default App
+
+Joke.js file
+import React from "react"
+
+function Joke(props) {
+    return (
+        <div>
+            <h3 style={{display: !props.question && "none"}}>Question: {props.question}</h3>
+            <h3 style={{color: !props.question && "#888888"}}>Answer: {props.punchLine}</h3>
+            <hr/>
+        </div>
+    )
+}
+export default Joke
+____________________________________________________________________________________________________________________________
+MAPPING COMPONENTS IN REACT
 
 
 
