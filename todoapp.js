@@ -144,6 +144,76 @@ function TodoItem() {
 export default TodoItem
 
 E. From style.css 
+__________________________________________________________________________________________________________________________
+Phase 2 (Mapping Components)
+
+App.js file -> Within App(), create a variable todoItems which will be the result of applying map() on the array of objects todosData. 
+Will pass the info from the individual item object down into <TodoItem />a. What is passed is an object called item, whose value is the
+item from the arrow function. 
+    const todoItems = todosData.map(item => <TodoItem key={item.id} item={item}/>)
+
+Can now return the instances of todoItems 
+
+import React from "react"
+import TodoItem from "./TodoItem"
+import todosData from "./todosData"
+
+function App() {
+    const todoItems = todosData.map(item => <TodoItem key={item.id} item={item}/>)
+    
+    return (
+        <div className="todo-list">
+            {todoItems}
+        </div>
+    )
+}
+export default App
+
+TodoItem.js -> accepting props parameter and gaining access to props from the App.js file. The input type is evaluating if the completed
+property is true. if so, it will place a checkmark in the app. This will throw a warning that says I didn't add an onchange handler and 
+will not be able to uncheck the check mark. This is a cool addition. Will address how to fix with forms. 
+
+import React from "react"
+function TodoItem(props) {
+    return (
+        <div className="todo-item">
+            <input type="checkbox" checked={props.item.completed}/>
+            <p>{props.item.text}</p>
+        </div>
+    )
+}
+export default TodoItem
+
+
+todosData.js
+const todosData = [
+    {
+        id: 1,
+        text: "Take out the trash",
+        completed: true
+    },
+    {
+        id: 2,
+        text: "Grocery shopping",
+        completed: false
+    },
+    {
+        id: 3,
+        text: "Clean gecko tank",
+        completed: false
+    },
+    {
+        id: 4,
+        text: "Mow lawn",
+        completed: true
+    },
+    {
+        id: 5,
+        text: "Catch up on Arrested Development",
+        completed: false
+    }
+]
+export default todosData
 
 
 
