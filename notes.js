@@ -1153,7 +1153,184 @@ export default App
 _____________________________________________________________________________________________________________________________________
 REACT SETSTATE: CHANGING THE STATE
 
+Having state in the component is nice but if I can only initialize it to a certain value and cannot change it doesn't add much value and 
+isn't much better than hard-coding into my code. Program below is a class based component with a constructor that calls super() and 
+initializes state with a property called count and sets it equal to 0. With render(), have an h1 that displays current count and a button
+with the word 'change' in it. Want to update code to click the button (using event handlers) which will change the state to be something 
+different and the different state will be reflected on screen by way of the h1.  
 
+import React from "react"
+class App extends React.Component {
+    constructor() {
+        super()
+        this.state = {
+            count: 0
+        }
+    }
+    
+    render() {
+        return (
+            <div>
+                <h1>{this.state.count}</h1>
+                <button>Change!</button>
+            </div>
+        )
+    }
+}
+export default App
+
+Can add an onClick event handler on the button. Inside {} put an arrow function. Can put an inline function within arrow function. But 
+instead, will create my own method called handleClick(). Instead of an inline anonymous function, can have onClick run handleClick(). 
+When the method is part of the class, need to reference on the 'this' object. 
+    <button onClick={() => {}}>Change!</button>
+    <button onClick={this.handleClick}>Change!</button>
+
+The constructor() is a method thats built in to classes in Javascript. Render() is a reserved method name for React. In between the 
+constructor() and render(), I can put as many methods as I want. A strong convention is to have a method called handleClick() when I am 
+handling a click event. Within handleClick() create code so that when button is clicked, the state is changed and increases count. Never
+want to modify state directly such as this.state.count++ or this.state.count+1. Never want to directly modify the original version of 
+state. Can think of state like the clothing I wear. When I want to change my clothing, I don't 'modify' my clothing. I don't paint my 
+clothing a different color. Or don't cut a t-shirt to sew on buttons so that I can have a button up shirt instead. What I do is completely
+replace my old clothes with my new clothes. Or replace my old clothes with the new clothes I want to wear. This is essentially want I want
+to do with state. 
+  
+handleClick() { 
+    this.state.count++ OR   --> directly modifies the original version of state. Do not want to do this. 
+    this.state.count +1
+    }
+
+One of the 'goodies' I get from React.Component is a method called setState(). Anytime I want to change state, I will use this method. 
+There are 2 things I can pass to getState().  One of them is a new version of state. State is just an object, so can pass an object {}
+and within object {count: 1}.  Currently the program has a button with an onClick that will run this.handleClick(). when button is 
+clicked, it will run this.handleClick(). The method this.handleClick() uses the set.State() method that comes from React.Component and 
+provides a new version of state, like a new t-shirt I want to wear. Now the count should be 1. Running the program at this point will 
+result in a common error -> TypeError: Cannot read property 'setState' of undefined.  The solution to this error is binding. 
+
+Anytime I create a class method (like handleClick) that I want to use setState() on, I need to bind the method to the class. The way to 
+bind the method is inside the constructor.  -> this.handleClick = this.handleClick.bind(this) -> ensures the the handleClick() method is
+is bound to the context of 'this' as it exists within the class. 
+
+class App extends React.Component {
+    constructor() {
+        super()
+        this.state = {
+            count: 0
+        }
+    }
+    
+    handleClick() {
+        this.setState({ count: 1 })
+    }
+    
+    render() {
+        return (
+            <div>
+                <h1>{this.state.count}</h1>
+                <button onClick={this.handleClick}>Change!</button>
+            </div>
+        )
+    }
+}
+
+When binding is added to code, the number on page will increase to 1 upon initial click. However, when user clicks the button again, the 
+number remains at 1. This is because of the hard code count:1 in handleClick(). The state changes from 0 to 1, then to 1 again. So really
+doing whats its supposed to do by changing the state to 1 only. Therefore cannot see the number change on the display after changed to 1. 
+
+This brings me to the 2nd way I can use set.State(). If I don't care what the previous version of state was, passing an object is a nice
+and simple way to provide a new state. -> this.setState({ count: 1 }). Many times, I will care what the previous state use to be. In this 
+case, I want to know what the previous state was and add 1 to it. Anytime I want to know what the previous state was, I can pass a 
+function to setState() -> this.setState(() => {})
+
+Function will receive in its parameter the previous version of state -> this.setState((prevState) => {}). Passing prevState to function.  
+Because this is an arrow function with 1 parameter, can get rid of () around the parameter -> this.setState(prevState => {})
+
+What the function should return is the new version of state. Before provided a new version of state directly as an object literal, 
+this.setState({ count: 1 }). Now providing a function that returns the object literal. The benefit of doing it this way is that I have
+access to the previous version of state. Within the function, return an object. The object should have a count property so that 
+<h1>{this.state.count}</h1> will not break. Since prevState represents the old version of state, and state is an object, I can access the
+previous version of state by saying prevState, which is the whole object. I can access the count property of the previous state by 
+prevState.count and add 1. -> count: prevState.count + 1  (count: prevState.count++ will directly modify state). 
+
+With count: prevState.count + 1, computer will figure out what the count used to be and add 1 to that and will set that as the new count 
+property of the new state object that is getting returned from the arrow function within the handleClick() method. Now when user clicks 
+the change button the number on the screen will increase by 1 with each click of the button. The App component now maintains its own 
+data in state and changes its data using setState(). 
+
+Summarizing the program below:
+    -the program has an h1 displaying the state, which just has a count property    -> <h1>{this.state.count}</h1>
+    -initialized count property to 0     -> this.state = {count: 0}
+    -added an event handler to button that runs a method called handleClick()  ->  <button onClick={this.handleClick}>Change!</button>
+    -created and defined handleClick() as a method on the App class (put handleClick() method between constructor and render)
+    -because handleClick() is using the setState() method that comes from the parent class React.Component, need to make sure to bind
+     method inside the constructor.  -> this.handleClick = this.handleClick.bind(this)
+    -once handleClick() is bound, can run setState() which can either take an object literal, this.setState({}), which is a new version 
+     of state that I want to pass to it. OR, if interested in what previous state used to be, can pass setState() a function that takes 
+     previousState as a parameter. And that function should return the object literal that represents the new version of state.  
+
+
+Revised code below. 
+
+import React from "react"
+class App extends React.Component {
+    constructor() {
+        super()
+        this.state = {
+            count: 0
+        }
+        this.handleClick = this.handleClick.bind(this)
+    }
+    
+    handleClick() {
+        this.setState(prevState => {
+            return {
+                count: prevState.count + 1
+            }
+        })
+    }
+    
+    render() {
+        return (
+            <div>
+                <h1>{this.state.count}</h1>
+                <button onClick={this.handleClick}>Change!</button>
+            </div>
+        )
+    }
+}
+export default App
+
+CSS code  to style the page for counter:
+
+div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+h1 {
+    font-size: 3em;
+}
+
+button {
+    border: 1px solid lightgray;
+    background-color: transparent;
+    padding: 10px;
+    border-radius: 4px;   
+}
+
+button:hover {
+    cursor: pointer;
+}
+
+button:focus {
+    outline:0;
+}
+
+Re-create, add addtl buttons to decrease, halve the count. 
+
+
+    
 
 
 
