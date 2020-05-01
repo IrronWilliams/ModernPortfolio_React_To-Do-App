@@ -951,6 +951,216 @@ function App() {
     )
 }
 export default App
+_________________________________________________________________________________________________________________________________
+CLASS BASED COMPONENTS
+
+Functions are easy to understand and makes clear what I am doing. This following creates a component with a function that returns 
+the UI I want displayed on a page.  As I go deeper into React and learn new parts about it, will find that a functional component will 
+not able to do all that I need it to do.  
+
+A class based component can pick up the limitations of a functional component, such as implementing state and life-cycle methods.  
+A class based component will start with the class keyword followed by the name of the component. Instead of () and {} will 'extends' 
+React.Component. This is using a prototype system in JavaScript and is setting up a prototype with React.Component. What this means is 
+I am receiving a bunch of 'goodies' from React.Component that is pre-written. Open with a set of {}. Every class based component at least 
+needs 1 method, and that is the render() method. Then render() will return exactly what is in the functional component. The class component
+is identical to the functional component.  
+at least 
+
+function App() {
+    return (
+        <div>
+            <h1>Code goes here</h1>
+        </div>
+    )
+}
+
+class App extends React.Component {
+    render() {
+        return (
+            <div>
+                <h1>Code goes here</h1>
+            </div>
+        )
+    }
+}
+
+If I have code that determines the display logic, meaning what will show up on the page or what the style of that element will be, this 
+type of should go inside the render() method before I do the return. This will be a good place to set up any style objects if I am 
+doing any inline styling, running the logic which determines how something will get displayed on the screen, conditional rendering, etc,
+can all go inside the render() method.  For example, the date object will determine how date is displayed in the <h1>:
+
+class App extends React.Component {
+    render() {
+        const date = new Date();
+        return (
+            <div>
+                <h1>Code goes here</h1>
+            </div>
+        )
+    }
+}
+
+In regards to classes, I can technically take it and put it inside of a method of my own, a class method. To do that, enter my method
+above render().  Inside of my method, can do any display logic that I wish. From inside the render() method, I can call my method by 
+using 'this.nameOfMyMethod': 
+
+class App extends React.Component {
+    
+    yourMethodHere() {
+        
+    }
+    
+    render() {
+        const style = this.yourMethodHere()
+        return (
+            <div>
+                <h1>Code goes here</h1>
+            </div>
+        )
+    }
+}
+
+With functional components can pass props to the function itself, and inside code can access props with props.propertyName. The only
+difference with a class is 'this.props.propertyName'. 
+_____________________________________________________________________________________________________________________________________
+REACT STATE
+
+One of the most important parts of React is understanding state. State is simply data that a component maintains, and with maintains, it
+can actually change its value. The reason why this is distinct is because props, (a means of passing data from component to component), 
+cannot be changed by the component receiving the props. Props are immutable/unchangeable. State is different in that its a way a 
+component can maintain its data AND change its data if need to.  Anytime I introduce state to a component, the 1st thing is the component
+needs to be a class based component. If I want a component to maintain its own data using state, it will need to be a class based component. 
+
+Next need to add a constructor method. A constructor is a specific method that is built into JavaScript that initializes parts of a class. 
+A constructor is a place where I am going to initialize some values. 1st thing to do inside of constructor is to make a call to a global
+function called super(). Super() goes to the parent class/also called the superclass (React.Component), and grabs some of the 'goodies'
+from the superclass and brings them into my class (App component) which can use these 'goodies'. 
+
+One of the main parts of React.Component that I will be using is a method called setState() which allows me to change state. To add 
+state to the component, add a property to 'this' called state (this.state). State will always be an object, so set this.state={}. 
+Now have state in the component. Can access state anywhere else in components code by referencing this.state. Can add a property to 
+'this.state' where property = answer and value = yes. To get the value to show up inside the <h1>, add {} braces because I will be 
+interpreting JavaScript inside JSX. Within {}, key this.state.answer. The page will show Is state important to know? Yes. 
+
+In this example, I am providing an initial value to state. This is the data the component will have when its 1st initialized. The 
+special thing about state is that the initial value can be changed later. 
+
+class App extends React.Component {
+    constructor() {
+        super()
+        this.state = {
+            answer: "Yes"
+        }
+    }
+    
+    render() {
+        return (
+            <div>
+                <h1>Is state important to know? {this.state.answer}</h1>
+            </div>
+        )
+    }
+}
+
+I can pass this.state from this component down to a child component. The only way to pass information from one component to another is via
+props. For example, may have a child component and pass down a prop called answer and its value is this.state.answer. 
+    render() {
+        return (
+            <div>
+                <h1>Is state important to know? {this.state.answer}</h1>
+                <ChildComponent answer={this.state.answer}/>
+            </div>
+        )
+    }
+
+PRACTICE
+// Given a stateless functional component, add state to it state should have a property called `isLoggedIn` which is a boolean, 
+(true if logged in, false if not). Then render the word "in" if the user is logged in or "out" if the user is logged out.
+
+import React from "react"
+
+function App() {
+    return (
+        <div>
+            <h1>You are currently logged (in/out)</h1>
+        </div>
+    )
+}
+
+class App extends React.Component {
+    constructor() {
+        super()
+        this.state = {
+            isLoggedIn: false
+        }
+    }
+    
+    render() {
+        let wordDisplay
+        if (this.state.isLoggedIn) {
+            wordDisplay = "in"
+        } else {
+            wordDisplay = "out"
+        }
+        return (
+            <div>
+                <h1>You are currently logged {wordDisplay}</h1>
+            </div>
+        )
+    }
+}
+export default App
+_____________________________________________________________________________________________________________________________________
+HANDLING EVENTS IN REACT 
+
+Before talking about changing state using setState() method, need to understand how to handle events in React. Event handling allows the 
+user to interact with web page and do something specific when a certain event like a click or hover happens. Handling events in React is
+simple. All of the event handlers will be the Javascript version which has the camelCase convention (onClick, onMouseOver). 
+
+When a click of a button occurs using onClick, pass an arrow function into a set of curly braces, while console logging 'I was clicked'. 
+
+import React from "react"
+function App() {
+    return (
+        <div>
+            <img src="https://www.fillmurray.com/200/100"/>
+            <br />
+            <br />
+            <button onClick={() => console.log("I was clicked!")}>Click me</button>
+        </div>
+    )
+}
+export default App
+
+Or can write a separate function and put the name of the reference to the function on the click event. Also add an add an event that
+console logs 'Hovered" when user hovers over image. 
+
+function handleClick() {
+    console.log("I was clicked")
+}
+
+function App() {
+    return (
+        <div>
+            <img onMouseOver={() => console.log("Hovered!")} src="https://www.fillmurray.com/200/100"/>
+            <br />
+            <br />
+            <button onClick={handleClick}>Click me</button>
+        </div>
+    )
+}
+export default App
+_____________________________________________________________________________________________________________________________________
+REACT SETSTATE: CHANGING THE STATE
+
+
+
+
+
+
+
+
+
 
 
 */

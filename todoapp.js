@@ -145,7 +145,7 @@ export default TodoItem
 
 E. From style.css 
 __________________________________________________________________________________________________________________________
-Phase 2 (Mapping Components)
+Phase 3 (Mapping Components)
 
 App.js file -> Within App(), create a variable todoItems which will be the result of applying map() on the array of objects todosData. 
 Will pass the info from the individual item object down into <TodoItem />a. What is passed is an object called item, whose value is the
@@ -214,12 +214,65 @@ const todosData = [
     }
 ]
 export default todosData
+_________________________________________________________________________________________________________________________________________
+Phase 4 (Adding State)
+
+In the previous iteration of todo list app, pulled in todos data from a JSON file and mapped over it to display the todo items.
+Eventually we'll want to be able to modify the data, which will only happen if we've "loaded" the data in to the component's state
+
+Update the <App /> component into a stateful class component and load the imported `todosData` into state.
+
+From App.js file ->
+import React from "react"
+import TodoItem from "./TodoItem"
+import todosData from "./todosData"
+
+class App extends React.Component {
+    constructor() {
+        super()
+        this.state = {  -> this.state is an object
+            todos: todosData  -> no longer mapping over todosData, now a value of the property todos. 
+        }
+    }
+    
+    render() {
+        const todoItems = this.state.todos.map(item => <TodoItem key={item.id} item={item}/>) -> mapping over todos parameter
+        
+        return (
+            <div className="todo-list">
+                {todoItems}
+            </div>
+        )    
+    }
+}
+export default App
+_________________________________________________________________________________________________________________________________________
+Phase 5 (Got rid of warning about not having an onChange on input by console logging Changed)
+
+TodoItem.js file ->
+import React from "react"
+
+function TodoItem(props) {
+    return (
+        <div className="todo-item">
+            <input 
+                type="checkbox" 
+                checked={props.item.completed} 
+                onChange={() => console.log("Changed!")}
+            />
+            <p>{props.item.text}</p>
+        </div>
+    )
+}
+export default TodoItem
 
 
 
-*/
 
 
+
+
+    */
 
 
  
