@@ -1196,7 +1196,7 @@ to do with state.
   
 handleClick() { 
     this.state.count++ OR   --> directly modifies the original version of state. Do not want to do this. 
-    this.state.count +1
+    this.state.count +1     --> directly modifies the original version of state. Do not want to do this. 
     }
 
 One of the 'goodies' I get from React.Component is a method called setState(). Anytime I want to change state, I will use this method. 
@@ -1326,8 +1326,9 @@ button:hover {
 button:focus {
     outline:0;
 }
+_____________________________________________________________________________________________________________________________________
+REACT LIFESTYLE METHODS PART1
 
-Re-create, add addtl buttons to decrease, halve the count. 
 
 
     
