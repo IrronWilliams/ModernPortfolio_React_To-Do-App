@@ -452,6 +452,170 @@ function TodoItem(props) {
 }
 export default TodoItem
 
+_________________________________________________________________________________________________________________________________________
+Phase 7 (Styling: Adding color grey, line thru and italics for completed todo's by creating an inline style and ternary to TodoItem.js)
+Final Files:
+
+App.js file ->
+import React from "react"
+import TodoItem from "./TodoItem"
+import todosData from "./todosData"
+
+class App extends React.Component {
+    constructor() {
+        super()
+        this.state = {
+            todos: todosData
+        }
+        this.handleChange = this.handleChange.bind(this)
+    }
+    
+    handleChange(id) {
+        this.setState(prevState => {
+            const updatedTodos = prevState.todos.map(todo => {
+                if (todo.id === id) {
+                    todo.completed = !todo.completed
+                }
+                return todo
+            })
+            return {
+                todos: updatedTodos
+            }
+        })
+    }
+    
+    render() {
+        const todoItems = this.state.todos.map(item => <TodoItem key={item.id} item={item} handleChange={this.handleChange}/>)
+        
+        return (
+            <div className="todo-list">
+                {todoItems}
+            </div>
+        )    
+    }
+}
+export default App
+
+
+TodoItem.js file ->
+import React from "react"
+
+function TodoItem(props) {
+    const completedStyle = {
+        fontStyle: "italic",
+        color: "#cdcdcd",
+        textDecoration: "line-through"
+    }
+    
+    return (
+        <div className="todo-item">
+            <input 
+                type="checkbox" 
+                checked={props.item.completed} 
+                onChange={() => props.handleChange(props.item.id)}
+            />
+            <p style={props.item.completed ? completedStyle: null}>{props.item.text}</p>
+        </div>
+    )
+}
+export default TodoItem
+
+index.html file ->
+<html>
+    <head>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <div id="root"></div>
+        <script src="index.pack.js"></script>
+    </body>
+</html>
+
+index.js file ->
+import React from "react"
+import ReactDOM from "react-dom"
+import App from "./App"
+ReactDOM.render(<App />, document.getElementById("root"))
+
+todosData.js file->
+const todosData = [
+    {
+        id: 1,
+        text: "Take out the trash",
+        completed: true
+    },
+    {
+        id: 2,
+        text: "Grocery shopping",
+        completed: false
+    },
+    {
+        id: 3,
+        text: "Clean gecko tank",
+        completed: false
+    },
+    {
+        id: 4,
+        text: "Mow lawn",
+        completed: true
+    },
+    {
+        id: 5,
+        text: "Catch up on Arrested Development",
+        completed: false
+    }
+]
+export default todosData
+
+style.css file ->
+body {
+    background-color: whitesmoke;
+}
+
+.todo-list {
+    background-color: white;
+    margin: auto;
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid #efefef;
+    box-shadow:
+  
+    0 1px 1px rgba(0,0,0,0.15), ->top layer shadow
+    
+    0 10px 0 -5px #eee,  -> second layer 
+  
+    0 10px 1px -4px rgba(0,0,0,0.15),  -> second layer shadow 
+    
+    0 20px 0 -10px #eee, -> third layer
+   
+    0 20px 1px -9px rgba(0,0,0,0.15); -> third layer shadow 
+padding: 30px;
+}
+
+.todo-item {
+display: flex;
+justify-content: flex-start;
+align-items: center;
+padding: 30px 20px 0;
+width: 70%;
+border-bottom: 1px solid #cecece;
+font-family: Roboto, sans-serif;
+font-weight: 100;
+font-size: 15px;
+color: #333333;
+}
+
+input[type=checkbox] {
+margin-right: 10px;
+font-size: 30px;
+}
+
+input[type=checkbox]:focus {
+outline: 0;
+}
+
 
 
 
