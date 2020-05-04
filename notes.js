@@ -739,7 +739,7 @@ function Joke(props) {
 }
 export default Joke
 ____________________________________________________________________________________________________________________________
-MAPPING COMPONENTS IN REACT
+10. MAPPING COMPONENTS IN REACT
 
 Most of the data that will be displayed on a page will likely come from an http call to an API where there is a server that hosts a 
 database and that database and server are returning JSON data to me. Will make API requests at a later time. In meantime, jokesData.js
@@ -952,7 +952,7 @@ function App() {
 }
 export default App
 _________________________________________________________________________________________________________________________________
-CLASS BASED COMPONENTS
+11. CLASS BASED COMPONENTS
 
 Functions are easy to understand and makes clear what I am doing. This following creates a component with a function that returns 
 the UI I want displayed on a page.  As I go deeper into React and learn new parts about it, will find that a functional component will 
@@ -1023,7 +1023,7 @@ class App extends React.Component {
 With functional components can pass props to the function itself, and inside code can access props with props.propertyName. The only
 difference with a class is 'this.props.propertyName'. 
 _____________________________________________________________________________________________________________________________________
-REACT STATE
+12. REACT STATE
 
 One of the most important parts of React is understanding state. State is simply data that a component maintains, and with maintains, it
 can actually change its value. The reason why this is distinct is because props, (a means of passing data from component to component), 
@@ -1111,7 +1111,7 @@ class App extends React.Component {
 }
 export default App
 _____________________________________________________________________________________________________________________________________
-HANDLING EVENTS IN REACT 
+13. HANDLING EVENTS IN REACT 
 
 Before talking about changing state using setState() method, need to understand how to handle events in React. Event handling allows the 
 user to interact with web page and do something specific when a certain event like a click or hover happens. Handling events in React is
@@ -1151,7 +1151,7 @@ function App() {
 }
 export default App
 _____________________________________________________________________________________________________________________________________
-REACT SETSTATE: CHANGING THE STATE
+14. REACT SETSTATE: CHANGING THE STATE
 
 Having state in the component is nice but if I can only initialize it to a certain value and cannot change it doesn't add much value and 
 isn't much better than hard-coding into my code. Program below is a class based component with a constructor that calls super() and 
@@ -1327,14 +1327,356 @@ button:focus {
     outline:0;
 }
 _____________________________________________________________________________________________________________________________________
-REACT LIFESTYLE METHODS PART1
+15. REACT LIFECYCLE METHODS OVERVIEW
+
+Can write a lot of vanilla Javascript With React and React takes care of a lot of stuff behind the scenes. With the stuff going on behind 
+the scenes, every single component that I create goes thru a series of phases or milestones during its life within the React application. 
+Every React component will undergo a series of events when its being rendered and updated. Lifecycle method's can be divided into 2 parts. 
+The React team has recently depricated (got rid of) 3 of the original lifecycle methods. The most important lifestyle methods when learning
+React, most commonly used are render().  The job of render() is to determine what gets rendered to the screen, which in turn is how the 
+component is displayed to the world. The render() method can be called many times. Any time React determines that something changes, such
+as state or props, which might affect how the component is supposed to displayed, React may run the render() method once again. 
+
+Another common lifecycle method is componentDidMount(). These lifecycle methods are defined like other methods inside the class between the
+class and render(). componentDidMount is a lifecycle method essentially saying 'you have been born'. This component did just mount to the 
+screen. The very 1st time the component shows up, React will run the componentDidMount method. The method will only run once while the 
+component is showing on the screen. Things like a re-render which changes the way the component is displayed does not re-run 
+componentDidMount. This is because the component does not actually mount and re-mount. Most common use cases for componentDidMount is to
+do things like an an API call when I need to get data from an outside source. For example, the component maybe a TodoList and I need to 
+get the list of todo's from a server or database before I'm able to accurately display the todo list. As soon as the component finishes 
+mounting, I can get the data that I need to correctly display. 
+
+Another lifecycle method is componentWillReceiveProps(). componentWillReceiveProps is kinda like when someone give me a gift. This component
+can receive props from a parent component and every time this component is receiving props, it will run componentWillReceiveProps method. 
+componentWillReceiveProps will not only run the very 1st time the component is mounted but will also run every single time a parent 
+component decides to hand props to a child component. For example, if a parent component decides to change the props that its passing 
+down to this component, inside componentWillReceiveProps can check to see if the new incoming props are different from the existing props. 
+Often times will say if they are not different do not do anything but if they are different may want a calculation to run or set a state. To receive
+To receive those new incoming props componentWillReceiveProps will receive a parameter called nextProps. Within function, there maybe an
+if statement which compares the incoming props to the existing props. If the 2 are different, do something. componentWillReceiveProps is
+one of the lifecycle methods has been depricated starting with version 16.3. Until React 17 is released componentWillReceiveProp has been
+renamed to UNSAFE_componentWillReceiveProp. If really need to use componentWillReceiveProp, can use until version 17. Its a good lifecycle 
+to understand if I am reviewing legacy code. Moving forward, this will not be part of a lifecycle. 
+
+shouldComponentUpdate() is another lifecycle method. Behind the scenes, if React has any question about whether a component needs to
+re-render, it will always choose to re-render it just in case w/o any logic specific to application needs behind the decision. React may 
+re-render a component event if nothing about the component has changed. This can become an expensive or slow operation if I allow this to
+happen to every component in a large application. shouldComponentUpdate() allows developer opportunity to optimize the app. Can implement
+logic to allow component to determine whether or not its important to update. To help make the decision, shouldComponentUpdate() will
+receive the incoming props (nextProps) and the incoming state (nextState). In the body of the function, need to either return true if want
+to update or false if do not want component to update. Returning false will make the application more performant. But need to be sure that
+I do not want the component to update. Otherwise will introduce weird and hard to debug bugs into the code. 
+
+componentWillUnmount() is another lifecycle method. The main use case for componentWillUnmount() is to do some clean up or tear down of 
+anything I've set up that could potentially lead to clutter in the DOM or application. A common use of componentWillUnmount() is if I
+set up an event listener in componentDidMount(). For example, I wanted to run some code every time someone scrolled on the screen. 
+Can use componentWillUnmount() to remove the event listener. This is an example. In general, componentWillUnmount() is a place to 
+teardown or cleanup your code before your component disappears. 
+
+The 3 lifecycle methods that have been depricated/removed are componentWillReceiveProps(), componentWillMount() and componentWillUpdate(). 
+In their place, receiving 2 new lifecycle methods one being getDerivedStateFromProps(). getDerivedStateFromProps() is a static method so 
+have to include the word static beforehand. getDerivedStateFromProps() receives props and state and should return the return the new, 
+updated state based upon the props. The React team has published a blog explaining why you do not need getDerivedState. Many times 
+this has been misused or caused weird bugs and/or performance issues with applications. In reality there is a better way to go about what
+they intended to do with this method. The idea behind getDerivedStateFromProps() is for the rare cases when component needs to take 
+incoming its receiving from its parent and set its own state based upon those props. The React team discourages the use of this method. 
+
+getSnapshotBeforeUpdate() is the 2nd new lifecycle method. Can think of getSnapshotBeforeUpdate() as a way to create a backup of the 
+current way things are. And with backup, meaning saving some type of data, likely an object with multiple points of data inside it. The
+object will be like a snapshot because its like a snapshot of the way application is right now. Per the React team, its not a cycle method
+that I will likely use.  
+
+As I become more advanced with the applications that I am building with React, I will become more acquainted with these lifecycle methods. 
+For now, will be using componentDidMount() and render(). 
 
 
-
+import React, {Component} from "react"
+class TodoList extends Component {
+    constructor() {
+        super()
+        this.state = {}
+    }
     
+    static getDerivedStateFromProps(props, state) {
+        // return the new, updated state based upon the props
+        // https://reactjs.org/docs/react-component.html#static-getderivedstatefromprops
+        // https://reactjs.org/blog/2018/06/07/you-probably-dont-need-derived-state.html
+    }
+    
+    getSnapshotBeforeUpdate() {
+        // create a backup of the current way things are
+        // https://reactjs.org/docs/react-component.html#getsnapshotbeforeupdate
+    }
+    
+    // componentWillMount() {
+        
+    // }
+    
+    componentDidMount() {
+        // GET the data I need to correctly display
+    }
+    
+    // componentWillReceiveProps(nextProps) {
+    //     if (nextProps.whatever !== this.props.whatever) {
+    //         // do something important here
+    //     }
+    // }
+    
+    shouldComponentUpdate(nextProps, nextState) {
+        // return true if want it to update
+        // return false if not
+    }
+    
+    // componentWillUpdate() {
+        
+    // }
+    
+    componentWillUnmount() {
+        // teardown or cleanup your code before your component disappears
+        // (E.g. remove event listeners)
+    }
+    
+    render() {
+        return (
+            <div>
+                Code goes here
+            </div>
+        )
+    }
+}
+export default App
+_____________________________________________________________________________________________________________________________________
+16. REACT CONDITIONAL RENDER
+
+The class based component has state with a property called isLoading with a value of either true or false. This is sometimes used when I 
+am making a call to an API and in meantime want something to show up. If the call to API takes 3-4 seconds, do not want user to think the
+website crashed. Can maintain something in state that says, hold on page is loading and conditional rendering will display something on 
+screen to communicate to user that something is loading in the background. 
+
+In render(), rendering a component called Conditional, which has been imported at start of app, and passing a prop to it called isLoading
+which is a the current version of state -> <Conditional isLoading={this.state.isLoading}/>.  
+
+componentDidMount() is an opportunity to run code right after the component (in this case App) mounts on the screen the very 1st time. In
+the method, kinds faking an API call, which sets a timeOut that will wait 1.5 seconds before running the code within the function. What is
+occurring in function is that I am changing state so that loading is false. Think of this function as a fake way to pretend making a call
+to an API that takes 1.5 seconds to come back with the data. At which point saying no longer loading because finished loading data from
+API. Once setState() changes isLoading to false, the conditional component <Conditional isLoading={this.state.isLoading}/> will now 
+receive a different prop. Component initially received a prop of 'true' when it first loads. When state changes and isLoading is false,
+the conditional component receives a new prop or rather the same isLoading prop with a different value. What will happen is when the state
+changes the render() method will run again because something has changed. Which means the conditional component will also re-render. 
+Conditional is just a functional component which means the function will just run again and whatever is within the function can 
+potentially change because the parameter value props may have also changed. 
+
+Go to Conditional component. The Conditional component/function is receiving a prop (by way of parameter props) called isLoading. With
+conditional rendering, I am going to load something on the screen if a condition is true. In this example, if props.isLoading is true, 
+then display and h1 that says 'Loading'. Else if not true, display a different text. 
+    -The App component will start with isLoading is true. 
+    -The App component therefore renders a conditional component where isLoading prop is true: <Conditional isLoading={this.state.isLoading}/>
+    -The Conditional component checks if props.isLoading is true, because true, renders <h1>Loading...</h1>
+    -Then when props.isLoading changes to false because state of the parent component changed to false (because of componentDidMount()), 
+     the Conditional component runs again and notices props.isLoading is no longer true and therefore returns h1 in else statement. 
+
+function Conditional(props) {
+    if(props.isLoading === true) {
+        return (
+            <h1>Loading...</h1>
+        )
+    } else {
+        return (
+            <h1>Some cool stuff about conditional rendering</h1>
+        )
+    }
+    
+}
+
+//can clean up code by creating an implied else
+function Conditional(props) {
+    if(props.isLoading === true) {
+        return (
+            <h1>Loading...</h1>
+        )
+    }
+    return (
+        <h1>Some cool stuff about conditional rendering</h1>
+    )    
+}
+
+Can also use a ternary which is commonly used in React apps when it comes to conditional rendering. Basic format of a ternary is 
+  condition ? statement if true : statement if false -> ask a question, provide a statement if true otherwise provide a statement if false
+
+function Conditional(props) {  
+    return (
+        <div>
+            {props.isLoading === true ? <h1>Loading...</h1> : <h1>Some cool stuff about conditional rendering</h1>}
+            {props.isLoading ? <h1>Loading...</h1> : <h1>Some cool stuff about conditional rendering</h1>} -> same result 
+        </div>
+    )
+    
+}
+
+With page refresh, page will initially render "Loading". Due to change in state will then render 'Some cool stuff about conditional 
+rendering' Files with Component.js using ternary below. In files following will remove ternary and have App component be in charge of
+managing conditional rendering.  
+
+App.js file -> 
+class App extends Component {
+    constructor() {
+        super()
+        this.state = {
+            isLoading: true
+        }
+    }
+    
+    componentDidMount() {
+        setTimeout(() => {
+            this.setState({
+                isLoading: false
+            })
+        }, 1500)
+    }
+    
+    render() {
+        return (
+            <div>
+                <Conditional isLoading={this.state.isLoading}/>
+            </div>
+        )
+    }
+}
+
+Conditional.js file -> (using ternary)
+function Conditional(props) {
+    return (
+        <div>
+            <h1>Navbar</h1>
+            
+            {props.isLoading ? <h1>Loading...</h1> : <h1>Some cool stuff about conditional rendering</h1>}
+            
+            <h1>Footer</h1>
+        </div>
+    )
+    
+}
+
+The App component should be in charge of managing conditional rendering. Reason is whatever is put in the Conditional component should 
+probably just be able to display when its told to display. Since App is in charge of determining if something is loading, it should also
+determine what should be rendered. As a result, the App component can manage the ternary operation. And the Conditional component should
+only know what to do when its supposed to display.  it 
+
+App.js file -> 
+import React, {Component} from "react"
+import Conditional from "./Conditional"
+
+class App extends Component {
+    constructor() {
+        super()
+        this.state = {
+            isLoading: true
+        }
+    }
+    
+    componentDidMount() {
+        setTimeout(() => {
+            this.setState({
+                isLoading: false
+            })
+        }, 1500)
+    }
+    
+    render() {
+        return (
+            <div>
+                {this.state.isLoading ?
+                <h1>Loading...</h1> :
+                <Conditional />}
+            </div>
+        )
+    }
+}
+export default App
+
+Conditional.js file ->
+import React from "react"
+
+function Conditional(props) {
+    return <h1>Some cool stuff about conditional rendering</h1>
+    
+}
+export default Conditional
+_____________________________________________________________________________________________________________________________________
+17. REACT CONDITIONAL RENDER PT2 (LOGICAL && OPERATOR)
+ 
+Use to using the logical && operator to refer to something on the left and something on the right as booleans in determining whether 
+the entire condition should be considered true or false. For example, true && false would be false because with the && operator both
+sides need to evaluate to something 'truthy' in order for the whole thing to be true. What Javascript is doing under the hood with the
+&& operator is determining the truthiness of the thing on the left, it immediately returns the thing on the right. Meaning when its 
+true && false it returns false because thats the thing on the right. If the thing on the left is falsey, false && false, it returns false
+from the beginning. The && operator can be a way to conditionally render something if a condition is true or just render nothing if false. 
+
+In this example, there are unReadMessages in state as an array of strings. In render() displays on page 'You have 2 unread messages' 
+because the render() method determines the length of the array. 
+
+ return (
+            <div>
+                <h2>You have {this.state.unreadMessages.length} unread messages!</h2>
+            </div>
+        )        
+
+If there were no messages in array, you would not want a message saying 'You have 0 unread messages'. Can use a ternary to display text 
+if messages are greater than 0 or display nothing if there are no messages. If number of messages is >0, then render h2, other wise render
+null or nothing on page. 
+
+ return (
+            <div>
+                {
+                    this.state.unreadMessages.length > 0 ? 
+                    <h2>You have {this.state.unreadMessages.length} unread messages!</h2> :
+                    null
+                }
+            </div>
+
+Can further simplify by getting rid of ternary and null. Check the truthiness of this.state.unreadMessages.length > 0 if true, render
+h2.  When using the && operator, if the thing on left is true, whats on the right is immediately returned. If thing on left is false, 
+render nothing. 
+
+return (
+            <div>
+                {
+                    this.state.unreadMessages.length > 0 && 
+                    <h2>You have {this.state.unreadMessages.length} unread messages!</h2> :
+                    null
+                }
+            </div>
 
 
+Full code ->
 
+import React, {Component} from "react"
+import Conditional from "./Conditional"
+
+class App extends Component {
+    constructor() {
+        super()
+        this.state = {
+            unreadMessages: []
+        }
+    }
+    // &&
+    // false && false
+    render() {
+        return (
+            <div>
+                {
+                    this.state.unreadMessages.length > 0 && 
+                    <h2>You have {this.state.unreadMessages.length} unread messages!</h2> :
+                    null
+                }
+            </div>
+        )
+    }
+}
+
+export default App
 
 
 
@@ -1342,4 +1684,3 @@ REACT LIFESTYLE METHODS PART1
 
 
 */
-

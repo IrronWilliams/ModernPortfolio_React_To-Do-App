@@ -289,8 +289,8 @@ function receives the event object.
     onChange={(event) => props.handleChange(props.item.id)}  -> can now pass property id. 
     onChange={() => props.handleChange(props.item.id)}  -> not using event. still calls props.handleChange() and passes the id to it.
 
-Refresh page. When user clicks checkbox, console log will show 'Changed, 2' for example. This means user clicked the checkbox for on the 
-2nd item (the numbers align with the itemid). If user clicks the 3rd item, console log will show 'Changed, 3'. 
+Refresh page. When user clicks checkbox, console log will show 'Changed, 2' for example. This means user clicked the checkbox for/on the 
+2nd item (the numbers align with the item id). If user clicks the 3rd item, console log will show 'Changed, 3'. 
 
 Next step is updating state. Because I am saving an array with initial state -> this.state = {todos: todosData} and I do not want to modify
 state directly, it will not be as simple as looping thru the array and finding the item with the id that is passed to 
@@ -315,7 +315,7 @@ To recap, I am looking at previous state and creating a new array that almost mi
 the same id as the function received from the onChange handler (that happens when the checkboxes are clicked on the page), that one item
 is changing from true to false or false to true. The brand new array is essentially replacing the old initial array created in the 
 constructor and gets rendered to the page. Then taking the handleChange() method and passing it down to every one of the todo items I 
-create with map method (map in render section). From TodoItem component, the todo items are receiving the handle change and everytime its 
+create with map method (map in render section). From TodoItem component, the todo items are receiving the handle change and every time its 
 checkbox is checked, it calls 'onChange', which has an anonymous function which then calls handleChange and passes this items id in order 
 to identify which in the array needs to be changed. 
     onChange={() => props.handleChange(props.item.id)}
@@ -337,19 +337,17 @@ Can leave the 2nd return because the 1st return will end the iteration of the fu
 
 const updatedTodos = prevState.todos.map(todo => {
                 if (todo.id === id) {
-                    todo.completed = !todo.completed
+                    todo.completed = !todo.completed  -> directly modifies state due to object reference 
 
                  REVISED   
 const updatedTodos = prevState.todos.map(todo => {
                 if (todo.id === id) {
-                    return {
-                        ...todo,
-                        completed: !todo.completed
+                    return {            -> return new object that replaces the todo in new array from map
+                        ...todo,        -> object spread notation to copy all properties from this.todo 
+                        completed: !todo.completed -> reverses the property from true to false or false to true 
                     }
                 }
                 return todo
-
-
 
 Revised App.js file -> ERROR: DIRECTLY MODIFIES STATE *******
 import React from "react"
@@ -369,7 +367,7 @@ class App extends React.Component {
         this.setState(prevState => {
             const updatedTodos = prevState.todos.map(todo => {
                 if (todo.id === id) {
-                    todo.completed = !todo.completed
+                    todo.completed = !todo.completed  -> directly modifies state
                 }
                 return todo
             })
@@ -452,8 +450,14 @@ function TodoItem(props) {
         </div>
     )
 }
-
 export default TodoItem
+
+
+
+
+
+
+
     */
 
 
