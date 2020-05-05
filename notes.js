@@ -1728,6 +1728,314 @@ export default App
 _____________________________________________________________________________________________________________________________________
 18. FETCHING DATA FROM AN API
 
+The lifecycle method componentDidMount() is like a hook in the React component that allows me to run some kind of code immediately after 
+the component first mounts to the DOM. One of the most common uses of componentDidMount is to get data from somewhere so that my component
+can do what its supposed to do. Can add the lifecycle method as a class method (within the App class). Can use fetch() with this lifestyle
+method. Fetch() is a nice/easy promise based way to perform http requests to get data that I need. Also using the Star Wars API because
+it is cors enabled which means there is no issue for my front end app getting data from their database. 
+
+Inside componentDidMount(), use global function fetch() and put in the url where I will be getting data from (star wars api) and search
+for people with an id of 1 (/people/1). Resolve the promise by using .then(), which will receive a response that is not yet in the format
+I need it to be. To get the response format ready, use the JSON method, which will turn the response into a Javascript object. Then chain
+on another .then() which will actually receive the data that I want (the data should be an object with some properties). Now that the 
+component has received the data, if I do not save the data, it will disappear. The way to save data within a component is by its state. 
+Anytime I want to change the state, call this.setState(). In this case, I don't care what the previous state was because i just want to 
+change this.state.character to be the data I just received. Within this.setState(), provide an object and within object say character 
+is the data that I received. (character: data)  
+
+    componentDidMount() {
+        fetch("https://swapi.co/api/people/1")  -> providing fetch with url i want data from and searching for people with an id of 1
+            .then(response => response.json())  -> resolving promise with then(). receives response. json turns response into an object
+            .then(data => {                     -> 2nd then() receives object, calling object 'data'. using =>{} to set new state
+                this.setState({                 -> saving/changing data by using setState() and passing an object to save the data
+                    character: data             -> updating state with the new data object. 
+                })
+            })
+    }
+
+To confirm this is working, render one of the properties to see if it will show up on the screen. 
+
+render() {
+        return (
+            <div>
+                {this.state.character.name}
+            </div>
+        )
+    }
+This process made an API call, waited for a response, got the response, formatted the response, set the state and displayed the name 
+of the character on the screen. 
+
+If the person using the app has a slow internet connection, the API is bogged down, or other reasons the API request maybe delayed, 
+nothing will show on the page until the request is done. This can be off-putting, frustrating for a user. To address this potential issue,
+can display a message stating the data is processing/on its way. Will display the word 'loading' until the data comes back from request. 
+This will illustrate a bit of the power of saving state in the component and updating state as I go. To do this, add to state a boolean
+to determine if loading. The boolean will have a property called loading and value false. Within componentDidMount(), right before fetch(), 
+want to change the state of loading. To change the state, use setState(). Don't care what the previous state was in this case, so just
+provide and object where loading is true -> this.setState({loading: true}). Now need to display the word 'loading' if state says data is 
+loading. Can use a ternary and assign value to a variable called text and render 'text'. Revised code below. 
+
+class App extends Component {
+    constructor() {
+        super()
+        this.state = {
+            loading: false,
+            character: {}
+        }
+    }
+    
+    componentDidMount() {
+        this.setState({loading: true})
+        fetch("https://swapi.co/api/people/1")
+            .then(response => response.json())
+            .then(data => {
+                this.setState({
+                    character: data
+                })
+            })
+    }
+    
+    render() {
+        const text = this.state.loading ? "loading..." : this.state.character.name
+        return (
+            <div>
+                <p>{text}</p>
+            </div>
+        )
+    }
+}
+export default App
+
+Refreshing page at this point, will just show 'loading' on page. This is because in componentGetMount(), I set loading to true but never
+again set loading to false
+    this.setState({loading: true}).  
+So within render the ternary operation is always evaluating to the  string 'loading'.  
+    -const text = this.state.loading ? "loading..." : this.state.character.name. 
+To fix this bug, set the state of loading back to false. 
+    this.setState({
+        loading: false,
+        character: data
+With page refresh, will see 'loading' for a moment then resolve to the property name. 
+
+Have successfully used componentDidMount() as a place to fetch data from an external API so that component can do what its supposed to do. 
+This component was designed to display one of the characters from the Star Wars API and it needed data from the Star Wars API to do it. 
+Also implemented a loading feature that lets the user know whether data is currently loading or not. Revised code below: 
+
+import React, {Component} from "react"
+class App extends Component {
+    constructor() {
+        super()
+        this.state = {
+            loading: false,
+            character: {}
+        }
+    }
+    
+    componentDidMount() {
+        this.setState({loading: true})
+        fetch("https://swapi.co/api/people/1")
+            .then(response => response.json())
+            .then(data => {
+                this.setState({
+                    loading: false,
+                    character: data
+                })
+            })
+    }
+    
+    render() {
+        const text = this.state.loading ? "loading..." : this.state.character.name
+        return (
+            <div>
+                <p>{text}</p>
+            </div>
+        )
+    }
+}
+export default App
+_____________________________________________________________________________________________________________________________________
+19. REACT FORMS PART1
+
+Forms in React are a bit different than vanilla Javascript. In vanilla Javascript, you create form in html, once user decides to submit
+form, you go thru all of the form inputs and gather all of the data together pretty much at the last second. And this is when you do 
+form validations, etc. With React, instead of waiting until the very end right before submitting the form to gather all of the info, React
+will constantly keep track of all of the info in state. Which means on every keystroke, will update state in order to have the most updated
+version of what the user is typing into the form. The code below renders a form with a single input. Within input, provide a type of text,
+and a placeholder of First Name. 
+
+render() {
+        return (
+            <form>
+                <input type="text" placeholder="First Name" />
+            </form>
+        )
+    }
+
+ I want to watch for every change to the input box. I can do this with onChange. Input boxes have an event that can get fired called 
+ onChange. Every single time the input changes in the input box, can run a function called this.handleChange. 
+
+ render() {
+        return (
+            <form>
+                <input type="text" placeholder="First Name" onChange={this.handleChange} />
+            </form>
+        )
+    }
+
+
+Within handleChange() method, the goal is to update state every single time user types something in the input box. I want to grab the 
+current value of the input box -> <input type="text" placeholder="First Name" onChange={this.handleChange} /> every time it changes. 
+And then update state to reflect what the current value of the input box is. Within state, add a property called firstName. Now have 
+something to update whenever the handleChange function runs. Within the handleChange() method, use this.setState() to update the state. 
+Not interested in previous state at this point. So within setState() provide an object that say firstName property should become 
+something -> this.setState({firstName: "???"}).
+
+When events fire, the event passes a predetermined parameter into the function. Do not get to choose in this instance what will be passed. 
+When fired, event will always pass info about the event. The event has some really important info. For example, can obtain value of the 
+input box from the passed event parameter by using event.target.value. Target represents the element in which the event was fired and 
+value is the value of the input box. So for the code is saying every single time a character is typed in the input box, run the 
+handleChange function. The handleChange() function changes the state so that the firstName property of state is updated to reflect 
+whatever the current value of the input box. When a class method calls setState(), make sure to bind it within the constructor. 
+
+import React, {Component} from "react"
+
+class App extends Component {
+    constructor() {
+        super()
+        this.state = {
+            firstName: ""
+        }
+        this.handleChange = this.handleChange.bind(this)
+    }
+    
+    handleChange(event) {    -> function receives the event parameter every time a character is typed in input box
+        this.setState({      -> changes state so that the firstName property of state is updated to reflect current value of input box
+            firstName: event.target.value
+        })
+    }
+    
+    render() {
+        return (
+            <form>
+                <input type="text" placeholder="First Name" onChange={this.handleChange} />  ->runs handleChange and passes event parameter
+                 <h1>{this.state.firstName}</h1> -> will display each character of state by displaying what is typed in input box. 
+            </form>
+        )
+    }
+}
+export default App
+
+To update last name of state follows will cause a problem. Typing First Name will display on screen as expected. However, when typing 
+Last Name, on the page, the last name will overwrite the first name. This is because in the handleChange() method, I have hard-coded 
+to update the first name property of state -> this.setState({firstName: event.target.value}). One way around this will be to create a
+new function that handles the state for last name and update render to point to the new function for last name. This approach will not 
+work with a larger form that may have 50+ inputs. 
+
+render() {
+        return (
+            <form>
+                <input type="text" placeholder="First Name" onChange={this.handleChange} />
+                <br />
+                <input type="text" placeholder="Last Name" onChange={this.handleChange} />
+                <h1>{this.state.firstName} {this.state.lastName}</h1>
+            </form>
+        )
+    }
+
+The approach to take is to not hard-code firstName. Will update render() by providing a name property to the inputs that perfectly matches
+what state is. Can do this because of the event parameter that is passed to the handleChange function. The event parameter has a bunch of
+info about the input firing the event. Have already grabbed the value of the input box -> event.target.value. Can also grab any parts of 
+the inputs object that I want, such as the name property. So can update the property firstName to [event.target.name]. 
+event.target is the input box and name is the property. Wrap in [] because the name property is a string and describing a string property
+name inside an object. This is a principal of Javascript. Refresh page. Now when typing in the First Name box will get a change to state 
+in First Name. Will also get a change to state with Last Name when typing in the last name input box. Revised code for function and render:
+
+handleChange(event) {
+        this.setState({
+            [event.target.name]: event.target.value
+        })
+    }
+    
+    render() {
+        return (
+            <form>
+                <input type="text" name="firstName" placeholder="First Name" onChange={this.handleChange} />
+                <br />
+                <input type="text" name="lastName" placeholder="Last Name" onChange={this.handleChange} />
+                <h1>{this.state.firstName} {this.state.lastName}</h1>
+            </form>
+        )
+    }
+
+This approach will work with all 'text' based types such as email or phone number. Can use the same handleChange() function. Within
+render(), make sure I provide a name property that perfectly matches the property in state (in constructor) and then pass the onChange
+function to it. Complete revised code:
+
+import React, {Component} from "react"
+class App extends Component {
+    constructor() {
+        super()
+        this.state = {
+            firstName: "",
+            lastName: ""
+        }
+        this.handleChange = this.handleChange.bind(this)
+    }
+    
+    handleChange(event) {
+        this.setState({
+            [event.target.name]: event.target.value
+        })
+    }
+    
+    render() {
+        return (
+            <form>
+                <input type="text" name="firstName" placeholder="First Name" onChange={this.handleChange} />
+                <br />
+                <input type="text" name="lastName" placeholder="Last Name" onChange={this.handleChange} />
+                <h1>{this.state.firstName} {this.state.lastName}</h1>
+            </form>
+        )
+    }
+}
+export default App
+
+The idea behind controlled forms is that I want what is displayed inside of form to perfectly match up with what is in state. Currently
+state is being reactive. Meaning every time the input in the input box changes, state updates according to whats in the input box. With 
+a controlled form, state actually directs what is showing up inside the input box. This aligns with idea that state should be the single
+source of truth. To make state less reactive is to add a value property in the text inputs. The value should always be
+'this.state.value property is holding', such as value={this.state.firstName}. Due to slight modification, what is showing up in the input
+box is because of what the current version of state is. In other words, I am forcing the value (what shows up in the input box) to exactly
+match what state is. 
+
+render() {
+        return (
+            <form>
+                <input type="text" value={this.state.firstName} name="firstName" placeholder="First Name" onChange={this.handleChange} />
+                <br />
+                <input type="text" value={this.state.lastName} name="lastName" placeholder="Last Name" onChange={this.handleChange} />
+                <h1>{this.state.firstName} {this.state.lastName}</h1>
+            </form>
+        )
+    }
+
+
+A good best practice that can help avoid a really difficult to debug bug. In this program, have not seen it but with more challenging 
+programs may increase likelihood of occurring. A good best practice is to use object destructuring. Instead of accessing the name and 
+value properties by drilling into the actual event.target object, can actually pull those value out of the target before I set any state.  
+    this.setState({[event.target.name]: event.target.value})
+
+Using object destructuring, I can say -> const {name, value} = event.target. And within setState provide name and value. Can research
+React synthetic event to understand the importance of object destructuring.  
+
+ handleChange(event) {  
+        const {name, value} = event.target  -> creating a copy of name and value before running setState()
+        this.setState({
+            [name]: value
+        })
+    }
+_____________________________________________________________________________________________________________________________________
+20. REACT FORMS PART2 
 
 
 
