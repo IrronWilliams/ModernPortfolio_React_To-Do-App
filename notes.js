@@ -1853,7 +1853,7 @@ class App extends Component {
 }
 export default App
 _____________________________________________________________________________________________________________________________________
-19. REACT FORMS PART1
+19. REACT FORMS PART1 (TEXT BASED ELEMENTS)
 
 Forms in React are a bit different than vanilla Javascript. In vanilla Javascript, you create form in html, once user decides to submit
 form, you go thru all of the form inputs and gather all of the data together pretty much at the last second. And this is when you do 
@@ -2036,7 +2036,288 @@ React synthetic event to understand the importance of object destructuring.
         })
     }
 _____________________________________________________________________________________________________________________________________
-20. REACT FORMS PART2 
+20. REACT FORMS PART2 (TEXTAREA, CHECKBOX, RADIO, SELECT/OPTIONAL ELEMENTS)
+
+The textarea element is not a self closing tag like the input element but instead has a closing tag "<textarea></textarea>". In regular 
+html, the textarea element is like an input box but is a bit taller, user has the ability to make it bigger/smaller, developers have 
+ability to change the default height and width with properties called rows and columns. Pre-populated text goes between 
+the opening and closing tags or the inner html.  
+
+React wants the textarea to be similar to the input element. In React, the textarea is a self closing element, <textarea />.  This is nice 
+because now can use the value property in the same way used with the input element, <textarea value={}/>.  This is nice for consistency as
+well as makes it easy to update the value of the thing inside the text area by updating state. The text "Some default value" will appear
+in the textarea on the page -> <textarea value={"Some default value"}/>
+
+Checkbox is a type from input. One of the major differences is that I will not use a value property like with textarea or input. The idea
+of a checkbox is that it is either checked or not checked. This means will add a checked property which will be determined by some kind of
+boolean. Checkboxes typically maintain booleans in state. In this example, checking whether person is friendly. 
+    <input type="checkbox" checked={this.state.isFriendly}  />
+
+Define isFriendly in state by adding property isFriendly and initialized as true. With page refresh, will now see a checkbox with a 
+check-mark. But if you click the check-mark, will not be able to un-check it. This is because in checkbox I have stated that the box
+is checked if "this.state.isFriendly" is true. Essentially, this true value is being forced on this input. Even if user tries to un-check,
+React will not allow because is.Friendly is evaluated as true (because of default value in state). I cannot make changes to this because I
+have not taught it how to make changes and how to change state at this point. It would be nice if I can use the existing handleChange 
+method to handle changes on a checkbox. I can do this by adding onChange and a name property that exactly matches state. 
+    <input type="checkbox" name="isFriendly" checked={this.state.isFriendly} onChange={this.handleChange}/>
+
+The tricky part comes in because in an input box, I am keeping track of what is being typed into the input box. From handleChange method, 
+I am grabbing the value from event.target.value and updating state with the new value "this.setState({[name]: value})". The checkbox does 
+not have a value, it has a checked property. And the checked property will either return true or false. In order to use the same 
+handleChange function for checkbox, need to check if the element that is being interacted with in the form is a checkbox or not. In the 
+<input /> element, there is type=checkbox. Type is a property I can pull from event.target. In addition to name and value, can also grab
+the type. Since checkboxes don't have a value, but instead have a checked property, can also pull checked from event.target. 
+
+   handleChange(event) {
+        const {name, value, type, checked} = event.target
+        this.setState({
+            [name]: value
+        })
+    }
+
+Now I can check if a type is a checkbox.  I will not be able to do "this.setState({[name]: value})" because checkbox does not have a value
+property. But instead need to change the [name] which will become [isFriendly] to whatever the current value of checked is. Can do an if/else
+or a ternary. Can say is the type equal to checkbox?  If so, need to update state in a certain way. If anything other than checkbox, use
+existing this.setState():
+    type === "checkbox" ? _____ : this.setState({[name]: value
+
+In regards to state. Will also run setState() and access the name property. Instead of using value, set it to whatever the value of 
+checked is:
+    type === "checkbox" ? this.setState({ [name]: checked }) : this.setState({ [name]: value })
+
+With page refresh, can now un-check the checkbox. With revised handleChange() method, when user clicks checkbox, handleChange() is called. 
+It sees the type is a checkbox and is running "this.setState({ [name]: checked })". And when entering info into the other input boxes, 
+state is being updated in a different way via "this.setState({ [name]: value })". 
+
+ handleChange(event) {
+        const {name, value, type, checked} = event.target
+        type === "checkbox" ? this.setState({ [name]: checked }) : this.setState({ [name]: value })
+    }
+   
+Radio buttons are a combination of input type text and the checkbox. Meaning radio buttons will use both a value property and a checked
+property. Begin process by making a copy/paste of the checkbox. Make 2 copies because radio button will be on topic of gender. Change
+the types to radio (type=radio) and update name to gender (name=gender). I am giving same name to both radio buttons (name=gender). 
+This tells the DOM to do is to make sure that I can only choose 1 of the 2 radio buttons. Radio buttons will also have a value and the 
+value will be different, male and female. Wrapping both radio buttons in a label. 
+
+                <label>
+                    <input 
+                        type="radio" 
+                        name="gender"
+                        value="male"
+                        checked={this.state.isFriendly}
+                        onChange={this.handleChange}
+                    /> Male
+                </label>
+                <br />
+                <label>
+                    <input 
+                        type="radio" 
+                        name="gender"
+                        value="female"
+                        checked={this.state.isFriendly}
+                        onChange={this.handleChange}
+                    /> Female
+                </label>
+
+With page refresh, the radio buttons will appear with respective labels. When user clicks on both buttons, unable to change them 
+(buttons appear blank/empty). But when user clicks the checkbox next to the "Is Friendly" label, it chooses one of the radio buttons to 
+be checked. This is a bit quirky and reason is sometimes a copy/paste may result in certain bugs. Also "checked={this.state.isFriendly}"
+is still saying the box is checked if isFriendly is true. This is where radio buttons are different because I can't say its checked if 
+some value in state is true. Because radio buttons jobs are not to maintain true or false values. This is what the checkbox is for. 
+Instead I want the button to be checked if the value of this.state.gender is equal to male for one radio button and if value of 
+this.state.gender is equal to female for the other. Need to update state to include gender and initialize with an empty string. With 
+page refresh, user can now select one of the radio buttons. Under the hood, its maintaining a gender of either male or female. Revised
+code for radio buttons:
+
+                <label>
+                    <input 
+                        type="radio" 
+                        name="gender"
+                        value="male"
+                        checked={this.state.gender === "male"}  -> checking if value of gender is equal to male
+                        onChange={this.handleChange}
+                    /> Male
+                </label>
+                <br />
+                <label>
+                    <input 
+                        type="radio" 
+                        name="gender"
+                        value="female"
+                        checked={this.state.gender === "female"}
+                        onChange={this.handleChange}
+                    /> Female
+                </label>
+
+Can display something on page to check if this is working. When clicking radio buttons, page will refresh with gender of clicked button. 
+When clicking radio button, state is updating and the text will dynamically update from 'You are a male' to 'You are a female'. 
+    <h2>You are a {this.state.gender}</h2>
+
+React also uses the value property for the select element. With value property can easily determine which of the select elements is 
+chosen and also update state. For example, want to determine what favorite color is. Will have a state property for favColor. The value
+of the whole <select><select/> element will be one of the options user chooses. 1st thing, make sure to put favColor in state and start
+with value of 'blue'. 
+
+                <select value={this.state.favColor}>
+                    <option></option>
+                    <option></option>
+                    <option></option>
+                <select/>
+Within <select><select/>, I need to make sure I am watching for a change on the select box. Begin by running handleChange() function with
+onChange. Also provide a name that matches the property in state. Lastly, make sure options have a value where the values are whatever I 
+want the different options to be. The value="blue" is the value under the hood and text in the innerHtml, >Blue<, is what will be 
+displayed in the text box. With page refresh, will see a list box with the different color options. 
+
+                <select 
+                    value={this.state.favColor}
+                    onChange={this.handleChange}
+                    name="favColor"
+                >
+                    <option value="blue">Blue</option>
+                    <option value="green">Green</option>
+                    <option value="red">Red</option>
+                    <option value="orange">Orange</option>
+                    <option value="yellow">Yellow</option>
+                </select>
+
+
+
+Can display something on page to check if this is working. With page refresh, notice state initialized correctly to blue. 
+When selecting a different color option, page will refresh with new color. When selecting different option, state is updating and the 
+text will dynamically update from 'You favorite color is blue' to 
+'You color is green'. 
+    <h2>Your favorite color is {this.state.favColor}</h2>
+
+What's cool about how React has chosen to implement the API regarding elements and forms is that it makes is so that I can use a single
+handleChange() method. I am essentially reusing this one handleChange() method for all of the elements in the form. I had to do just 1 
+workaround with the checkboxes simply because of the philosophy behind checkboxes is so different from the other elements. 
+
+There are 2 general ways to actually submit the form or do something at the end of completing the form. Either way, its a good idea to put
+a button in the form. Buttons in html5, if found within a form, when clicked are treated as a 'submit' button. Meaning they will fire the 
+'on submit' of the form itself. The button acts like the old input type submit:
+     <input type="submit" value='ClickMe'/>
+
+When I want to do something when finished with the form, one thing I could do is add an onClick on the button. Can also handle the action
+on the form itself by adding an onSubmit handler -> form onSubmit={this.handleSubmit}.  Code has not been written for the handleSubmit() 
+method. But can create a new method called handleSubmit() with responsibility of submitting a form to an API or something. 
+
+
+
+Don't feel overwhelmed so much with memorizing the syntax for these elements. As this may distract from all of the other coolness React
+has to offer. Just practice/review and overtime will gain a muscle memory that will help with memorizing this. 
+
+
+
+
+Final code: 
+import React, {Component} from "react"
+
+class App extends Component {
+    constructor() {
+        super()
+        this.state = {
+            firstName: "",
+            lastName: "",
+            isFriendly: false,
+            gender: "",
+            favColor: "blue"
+        }
+        this.handleChange = this.handleChange.bind(this)
+    }
+    
+    handleChange(event) {
+        const {name, value, type, checked} = event.target
+        type === "checkbox" ? this.setState({ [name]: checked }) : this.setState({ [name]: value })
+    }
+    
+    render() {
+        return (
+            <form onSubmit={this.handleSubmit}>  -> have not created a method for handleSubmit() to address what to do when form is done 
+                <input 
+                    type="text" 
+                    value={this.state.firstName} 
+                    name="firstName" 
+                    placeholder="First Name" 
+                    onChange={this.handleChange} 
+                />
+                <br />
+                <input 
+                    type="text" 
+                    value={this.state.lastName} 
+                    name="lastName" 
+                    placeholder="Last Name" 
+                    onChange={this.handleChange} 
+                />
+                
+                <textarea 
+                    value={"Some default value"}
+                    onChange={this.handleChange} ->Adding onChange to textarea will remove the warning message from console.
+                />
+                
+                <br />
+                
+                <label>
+                    <input 
+                        type="checkbox" 
+                        name="isFriendly"
+                        checked={this.state.isFriendly}
+                        onChange={this.handleChange}    
+                    /> Is friendly?
+                </label>
+                <br />
+                <label>
+                    <input 
+                        type="radio" 
+                        name="gender"
+                        value="male"
+                        checked={this.state.gender === "male"}
+                        onChange={this.handleChange}
+                    /> Male
+                </label>
+                <br />
+                <label>
+                    <input 
+                        type="radio" 
+                        name="gender"
+                        value="female"
+                        checked={this.state.gender === "female"}
+                        onChange={this.handleChange}
+                    /> Female
+                </label>        
+                <br />
+                
+                <label>Favorite Color:</label>
+                <select 
+                    value={this.state.favColor}
+                    onChange={this.handleChange}
+                    name="favColor"
+                >
+                    <option value="blue">Blue</option>
+                    <option value="green">Green</option>
+                    <option value="red">Red</option>
+                    <option value="orange">Orange</option>
+                    <option value="yellow">Yellow</option>
+                </select>
+                
+                <h1>{this.state.firstName} {this.state.lastName}</h1>
+                <h2>You are a {this.state.gender}</h2>
+                <h2>Your favorite color is {this.state.favColor}</h2>
+                <button>Submit</button>
+            </form>
+        )
+    }
+}
+export default App
+--------------------------------------------------------------------------------------------------------------------
+FORMS PRACTICE 
+
+
+                 
+
+
+
+
 
 
 
