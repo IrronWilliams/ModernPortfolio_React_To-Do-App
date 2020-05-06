@@ -1870,8 +1870,8 @@ render() {
         )
     }
 
- I want to watch for every change to the input box. I can do this with onChange. Input boxes have an event that can get fired called 
- onChange. Every single time the input changes in the input box, can run a function called this.handleChange. 
+ I want to watch for every change to the input box. I can do this with onChange. Input boxes have an event that get fired called 
+ onChange. Every single time the input changes in the input box, onChange will run a function called this.handleChange. 
 
  render() {
         return (
@@ -1883,21 +1883,20 @@ render() {
 
 
 Within handleChange() method, the goal is to update state every single time user types something in the input box. I want to grab the 
-current value of the input box -> <input type="text" placeholder="First Name" onChange={this.handleChange} /> every time it changes. 
+current value of the input box -> "<input type="text" placeholder="First Name" onChange={this.handleChange} />" every time it changes. 
 And then update state to reflect what the current value of the input box is. Within state, add a property called firstName. Now have 
 something to update whenever the handleChange function runs. Within the handleChange() method, use this.setState() to update the state. 
-Not interested in previous state at this point. So within setState() provide an object that say firstName property should become 
+Not interested in previous state at this point. So within setState() provide an object that says firstName property should become 
 something -> this.setState({firstName: "???"}).
 
 When events fire, the event passes a predetermined parameter into the function. Do not get to choose in this instance what will be passed. 
 When fired, event will always pass info about the event. The event has some really important info. For example, can obtain value of the 
 input box from the passed event parameter by using event.target.value. Target represents the element in which the event was fired and 
-value is the value of the input box. So for the code is saying every single time a character is typed in the input box, run the 
+value is the value of the input box. Thus far the code is saying every single time a character is typed in the input box, run the 
 handleChange function. The handleChange() function changes the state so that the firstName property of state is updated to reflect 
 whatever the current value of the input box. When a class method calls setState(), make sure to bind it within the constructor. 
 
 import React, {Component} from "react"
-
 class App extends Component {
     constructor() {
         super()
@@ -1924,11 +1923,11 @@ class App extends Component {
 }
 export default App
 
-To update last name of state follows will cause a problem. Typing First Name will display on screen as expected. However, when typing 
-Last Name, on the page, the last name will overwrite the first name. This is because in the handleChange() method, I have hard-coded 
-to update the first name property of state -> this.setState({firstName: event.target.value}). One way around this will be to create a
-new function that handles the state for last name and update render to point to the new function for last name. This approach will not 
-work with a larger form that may have 50+ inputs. 
+To update last name of state in render() below will cause a problem. Typing First Name will display on screen as expected. However, 
+when typing Last Name, on the page, the last name will overwrite the first name. This is because in the handleChange() method, I have 
+hard-coded to update the first name property of state -> "this.setState({firstName: event.target.value})". One way around this will be 
+to create a new function that handles the state for last name and update render to point to the new function for last name. This 
+approach will not work with a larger form that may have 50+ inputs. 
 
 render() {
         return (
@@ -1943,11 +1942,12 @@ render() {
 
 The approach to take is to not hard-code firstName. Will update render() by providing a name property to the inputs that perfectly matches
 what state is. Can do this because of the event parameter that is passed to the handleChange function. The event parameter has a bunch of
-info about the input firing the event. Have already grabbed the value of the input box -> event.target.value. Can also grab any parts of 
-the inputs object that I want, such as the name property. So can update the property firstName to [event.target.name]. 
-event.target is the input box and name is the property. Wrap in [] because the name property is a string and describing a string property
-name inside an object. This is a principal of Javascript. Refresh page. Now when typing in the First Name box will get a change to state 
-in First Name. Will also get a change to state with Last Name when typing in the last name input box. Revised code for function and render:
+info about the input firing the event. Have already grabbed the value of the input box -> "event.target.value". Can also grab any parts 
+of the inputs object that I want, such as the name property. So can update the property firstName to [event.target.name] where 
+event.target is the input box and name is the property. Wrap in [] because the name property is a string and also describing a string 
+property name inside an object. This is a principal of Javascript. Refresh page. Now when typing in the First Name box will get a change 
+to state in First Name. Will also get a change to state with Last Name when typing in the last name input box. 
+Revised code for function and render:
 
 handleChange(event) {
         this.setState({
@@ -2020,16 +2020,17 @@ render() {
     }
 
 
-A good best practice that can help avoid a really difficult to debug bug. In this program, have not seen it but with more challenging 
-programs may increase likelihood of occurring. A good best practice is to use object destructuring. Instead of accessing the name and 
-value properties by drilling into the actual event.target object, can actually pull those value out of the target before I set any state.  
-    this.setState({[event.target.name]: event.target.value})
+A good best practice that can help avoid a really difficult to debug bug: In this program, have not seen this particular bug but with 
+more complex programs may increase likelihood of occurring. A good best practice is to use object destructuring. Instead of accessing 
+the name and value properties by drilling into the actual event.target object, can actually pull those value out of the target before 
+I set any state.  
+    this.setState({[event.target.name]: event.target.value})  -> drilling into event.target object
 
 Using object destructuring, I can say -> const {name, value} = event.target. And within setState provide name and value. Can research
 React synthetic event to understand the importance of object destructuring.  
 
  handleChange(event) {  
-        const {name, value} = event.target  -> creating a copy of name and value before running setState()
+        const {name, value} = event.target  -> destructuring by creating a copy of name and value before running setState()
         this.setState({
             [name]: value
         })
