@@ -2305,7 +2305,7 @@ class App extends Component {
 }
 export default App
 --------------------------------------------------------------------------------------------------------------------
-FORMS PRACTICE 
+FORMS PRACTICE (CREATING A TRAVEL FORM)
 
 You just started your own airline, and you need to create a form to collect data about your passengers' upcoming travel plans so they 
 can book their flight.
@@ -2469,7 +2469,283 @@ export default App
 _____________________________________________________________________________________________________________________________________
 21. REACT CONTAINER AND COMPONENT ARCHITECTURE 
 
+The travel form is a component with over 140 lines of code. Spent a lot of time scrolling up and down when developing the form. There
+is a lot of space within render(). The space in render() is being used as display logic. Render() is showing the form, its displaying 
+UI and creating elements. In addition to the space within render, there is also space for maintaining state and space for the 
+handleChange() method which is managing business logic. There is a study which concludes that a programmer's ability to understand the 
+code they are looking at diminishes drastically when the file the programmer is reviewing is one in which they have to scroll to see
+everything. Having a program with many lines of code/too long where one is continuously scrolling makes it easier to become disoriented, 
+lose your place and makes it more difficult to understand what programmer is looking at. 
+
+It would be nice if I separated my concerns between the UI logic/rendering logic and the business logic that mandates how the rendered
+logic changes (state & handleChange method). This idea emerged a few years ago of having a presentational component and a smart component
+(component in charge of the biz logic). There are a lot of different names for this such as 'presentational and container components',
+'smart components and dumb components', 'containers and components'. They all refer to the same thing. The idea is that I have 1 component
+whose job is to maintain state and the methods that update state. And for that component to essentially delegate the UI logic or 
+presentational logic to another component thats called the presentational component. The presentational component will only be responsible
+for receiving props and displaying things correctly. 
+
+With the travel form, everything is happening within the App component. Can reorganize the application and have the App component render 
+the form and let the form do all of the 'form related things'. Can start process by creating a component called FormContainer.js and 
+copy/paste the entire code from the App component into the new FormContainer component. Within FormContainer, update the class name to 
+FormContainer and the export default statement. Within the App component, be sure to import FormContainer. Since FormContainer is 
+handling state and things related to form, can update App component by changing it to a functional component that renders the form. 
+Ideally, would like the App to present as a table of contents that consists of the main elements of the application 
+(such as header/forms/footer). The table of contents will delegate the rendering of the main UI components to the other components 
+within the application. 
+
+Back to the FormContainer component. Still have the initial problem in the sense that I have 1 component basically doing everything. Can 
+address this problem by creating another component called FormComponent. Opening FormContainer, copy the rendering logic 
+(logic in the return statement), go back to FormComponent, create a function called FormComponent and paste the return logic within the 
+body of the function. Make sure to pass the parameter 'props' in the function. Because FormComponent has logic copied from a class 
+based component, there is syntax such as 'this.state.firstName' and 'this.handleChange'. The functional component FormComponent 
+does not have a handleChange() method nor does it have any state. Instead this functional component is going to receive everything 
+thru props. Will need to update accordingly.
+
+Back to FormContainer. There is now an empty render. Can let the FormContainer delegate all of the UI stuff to the FormComponent. Begin
+process by importing the FormComponent. Within render(), render the <FormComponent />. Now need to pass a bunch of stuff thru props via
+ <FormComponent />. Need to wire up the  <FormComponent />. Need to pass all of the properties in state and also pass the handleChange()
+ method. Begin by passing the handleChange() method by updating render() as follows:  
+
+    render() {
+        <FormComponent
+            handleChange={this.handleChange}
+        />
+    }
+
+Back to FormComponent. With the passing of the handleChange() method in FormContainer and regarding the function FormComponent(props), 
+in the props parameter, will now receive a prop called handleChange(). So now within FormComponent, can update all of the references of 
+'this' and update with 'props'. So syntax such as 'this.handleChange' should be updated to props.handleChange. There are still 
+references to 'this' within FormComponent such as this.state.FirstName'. Because there is not state in this component, need to go back to
+FormContainer and pass down the properties of state. Can pass down the state properties individually but that would mean the FormComponent
+will have 7-8 additional lines. This approach will be a bit annoying and inefficient.  
+
+render() {
+        <FormComponent
+            handleChange={this.handleChange}
+            firstName={this.state.firstName}
+            lastName={this.state.lastName}
+        />
+    }
+
+Another option is to pass the whole state object down as a property called data. Far more efficient and so much better. 
+
+render() {
+        <FormComponent
+            handleChange={this.handleChange}
+            data={this.state}
+        />
+    }
+Back to FormComponent, because of how I passed the state object in FormContainer, I will need to update the references to state accordingly.
+Within the function FormComponent, update all references to 'this' (this.state.firstName) to 'props.data' (now props.data.firstName). 
+
+If could have passed all of the properties of state by using the object spread operator. Here, the spread operator is saying, pass down
+all properties of this.state. With this approach, I could access the state properties by saying 'props.firstName'. 'props.data.firstName' 
+not assigning the state properties to a variable called data.   
+
+ render() {
+        <FormComponent
+            handleChange={this.handleChange}
+            {...this.state}  
+        />
+    }
+
+Although the length of the FormComponent still requires a bit of scrolling, it now only cares about the UI component of the form. The 
+FormContainer only cares about the business logic of the form. Now have a nice separation of concerns and allows developers to have 
+an easier time making changes to the file because no longer scrolling thru lines and lines of code as how app was originally designed. 
+Separating of concerns is a great approach if I find I have a single component that has both business logic and display logic which 
+results in many lines of code resulting in scrolling that can be distracting/hard to understand.  
+
+SEPARATION OF CONCERNS:
+
+App.js file (access point to application)-> 
+import React, {Component} from "react"
+import Form from "./FormContainer"
+
+function App() {
+    return (
+        <Form />
+    )
+}
+export default App
 
 
+FormContainer.js component file (concerns about the business logic of the form) ->
+import React, {Component} from "react"
+import FormComponent from "./FormComponent"
+
+class Form extends Component {
+    constructor() {
+        super()
+        this.state = {
+            firstName: "",
+            lastName: "",
+            age: "",
+            gender: "",
+            destination: "",
+            isVegan: false,
+            isKosher: false,
+            isLactoseFree: false
+        }
+        this.handleChange = this.handleChange.bind(this)
+    }
+    
+    handleChange(event) {
+        const {name, value, type, checked} = event.target
+        type === "checkbox" ? 
+            this.setState({
+                [name]: checked
+            })
+        :
+        this.setState({
+            [name]: value
+        }) 
+    }
+    
+    render() {
+        return(
+            <FormComponent
+                handleChange={this.handleChange}
+                data={this.state}
+            />
+        )
+    }
+}
+export default Form
+
+FormComponent.js component file (concerns about the UI component of the form) ->
+import React from "react"
+
+function FormComponent(props) {
+    return (
+        <main>
+            <form>
+                <input 
+                    name="firstName" 
+                    value={props.data.firstName} 
+                    onChange={props.handleChange} 
+                    placeholder="First Name" 
+                />
+                <br />
+                
+                <input 
+                    name="lastName" 
+                    value={props.data.lastName}
+                    onChange={props.handleChange} 
+                    placeholder="Last Name" 
+                />
+                <br />
+                
+                <input 
+                    name="age" 
+                    value={props.data.age}
+                    onChange={props.handleChange} 
+                    placeholder="Age" 
+                />
+                <br />
+                
+                <label>
+                    <input 
+                        type="radio" 
+                        name="gender"
+                        value="male"
+                        checked={props.data.gender === "male"}
+                        onChange={props.handleChange}
+                    /> Male
+                </label>
+                
+                <br />
+                
+                <label>
+                    <input 
+                        type="radio" 
+                        name="gender"
+                        value="female"
+                        checked={props.data.gender === "female"}
+                        onChange={props.handleChange}
+                    /> Female
+                </label>
+                
+                <br />
+                
+                <select 
+                    value={props.data.destination} 
+                    name="destination" 
+                    onChange={props.handleChange}
+                >
+                    <option value="">-- Please Choose a destination --</option>
+                    <option value="germany">Germany</option>
+                    <option value="norway">Norway</option>
+                    <option value="north pole">North Pole</option>
+                    <option value="south pole">South Pole</option>
+                </select>
+                
+                <br />
+                
+                <label>
+                    <input 
+                        type="checkbox"
+                        name="isVegan"
+                        onChange={props.handleChange}
+                        checked={props.data.isVegan}
+                    /> Vegan?
+                </label>
+                <br />
+                
+                <label>
+                    <input 
+                        type="checkbox"
+                        name="isKosher"
+                        onChange={props.handleChange}
+                        checked={props.data.isKosher}
+                    /> Kosher?
+                </label>
+                <br />
+                
+                <label>
+                    <input 
+                        type="checkbox"
+                        name="isLactoseFree"
+                        onChange={props.handleChange}
+                        checked={props.data.isLactoseFree}
+                    /> Lactose Free?
+                </label>
+                <br />
+                
+                <button>Submit</button>
+            </form>
+            <hr />
+            <h2>Entered information:</h2>
+            <p>Your name: {props.data.firstName} {props.data.lastName}</p>
+            <p>Your age: {props.data.age}</p>
+            <p>Your gender: {props.data.gender}</p>
+            <p>Your destination: {props.data.destination}</p>
+            <p>Your dietary restrictions:</p>
+            
+            <p>Vegan: {props.data.isVegan ? "Yes" : "No"}</p>
+            <p>Kosher: {props.data.isKosher ? "Yes" : "No"}</p>
+            <p>Lactose Free: {props.data.isLactoseFree ? "Yes" : "No"}</p>
+            
+        </main>
+    )
+}
+export default FormComponent
+
+Index.html file (App.js references the root id in order for program to appear on html page) -> 
+<html>
+    <head>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <div id="root"></div>
+        <script src="index.pack.js"></script>
+    </body>
+</html>
+
+Index.js file (statements where App access the program ) ->
+import React from "react"
+import ReactDOM from "react-dom"
+import App from "./App"
+ReactDOM.render(<App />, document.getElementById("root"))
 
 */
