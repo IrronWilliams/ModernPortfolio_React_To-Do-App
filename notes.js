@@ -2043,7 +2043,7 @@ html, the textarea element is like an input box but is a bit taller, user has th
 ability to change the default height and width with properties called rows and columns. Pre-populated text goes between 
 the opening and closing tags or the inner html.  
 
-React wants the textarea to be similar to the input element. In React, the textarea is a self closing element, <textarea />.  This is nice 
+React wants the textarea to be similar to the input element. In React, the textarea is a self closing element, <textarea />. This is nice 
 because now can use the value property in the same way used with the input element, <textarea value={}/>.  This is nice for consistency as
 well as makes it easy to update the value of the thing inside the text area by updating state. The text "Some default value" will appear
 in the textarea on the page -> <textarea value={"Some default value"}/>
@@ -2181,8 +2181,6 @@ displayed in the text box. With page refresh, will see a list box with the diffe
                     <option value="yellow">Yellow</option>
                 </select>
 
-
-
 Can display something on page to check if this is working. With page refresh, notice state initialized correctly to blue. 
 When selecting a different color option, page will refresh with new color. When selecting different option, state is updating and the 
 text will dynamically update from 'You favorite color is blue' to 
@@ -2202,12 +2200,9 @@ When I want to do something when finished with the form, one thing I could do is
 on the form itself by adding an onSubmit handler -> form onSubmit={this.handleSubmit}.  Code has not been written for the handleSubmit() 
 method. But can create a new method called handleSubmit() with responsibility of submitting a form to an API or something. 
 
-
-
 Don't feel overwhelmed so much with memorizing the syntax for these elements. As this may distract from all of the other coolness React
-has to offer. Just practice/review and overtime will gain a muscle memory that will help with memorizing this. 
-
-
+has to offer. However, need to understand the process/concepts for building forms. Just practice/review and overtime will gain a muscle 
+memory that will help with memorizing this. 
 
 
 Final code: 
@@ -2312,11 +2307,167 @@ export default App
 --------------------------------------------------------------------------------------------------------------------
 FORMS PRACTICE 
 
+You just started your own airline, and you need to create a form to collect data about your passengers' upcoming travel plans so they 
+can book their flight.
 
-                 
+You should collect the following information from the user:
 
+    First name (text input)
+    Last name (text input)
+    Age (number input)
+    Gender (radio buttons with 2 or more options)
+    Location they're traveling to (select box with at least 3 options. You're an airline that doesn't fly to many places...)
+    Whether they have any dietary restrictions (check boxes for vegetarian, kosher, lactose free, etc. Include at least 3 options)
 
+Each element of the form should be given a name attribute so you can access the data in JavaScript and do stuff with it.
+All information should be populating the text below the form in real-time as you're filling it out. 
 
+import React, {Component} from "react"
+
+class App extends Component {
+    constructor() {
+        super()
+        this.state = {
+            firstName: "",
+            lastName: "",
+            age: "",
+            gender: "",
+            destination: "",
+            isVegan: false,
+            isKosher: false,
+            isLactoseFree: false
+        }
+        this.handleChange = this.handleChange.bind(this)
+    }
+    
+    handleChange(event) {
+        const {name, value, type, checked} = event.target
+        type === "checkbox" ? 
+            this.setState({
+                [name]: checked
+            })
+        :
+        this.setState({
+            [name]: value
+        }) 
+    }
+    
+    render() {
+        return (
+            <main>
+                <form>
+                    <input 
+                        name="firstName" 
+                        value={this.state.firstName} 
+                        onChange={this.handleChange} 
+                        placeholder="First Name" 
+                    />
+                    <br />
+                    
+                    <input 
+                        name="lastName" 
+                        value={this.state.lastName}
+                        onChange={this.handleChange} 
+                        placeholder="Last Name" 
+                    />
+                    <br />
+                    
+                    <input 
+                        name="age" 
+                        value={this.state.age}
+                        onChange={this.handleChange} 
+                        placeholder="Age" 
+                    />
+                    <br />
+                    
+                    <label>
+                        <input 
+                            type="radio" 
+                            name="gender"
+                            value="male"
+                            checked={this.state.gender === "male"}
+                            onChange={this.handleChange}
+                        /> Male
+                    </label>
+                    
+                    <br />
+                    
+                    <label>
+                        <input 
+                            type="radio" 
+                            name="gender"
+                            value="female"
+                            checked={this.state.gender === "female"}
+                            onChange={this.handleChange}
+                        /> Female
+                    </label>
+                    
+                    <br />
+                    
+                    <select 
+                        value={this.state.destination} 
+                        name="destination" 
+                        onChange={this.handleChange}
+                    >
+                        <option value="">-- Please Choose a destination --</option>
+                        <option value="germany">Germany</option>
+                        <option value="norway">Norway</option>
+                        <option value="north pole">North Pole</option>
+                        <option value="south pole">South Pole</option>
+                    </select>
+                    
+                    <br />
+                    
+                    <label>
+                        <input 
+                            type="checkbox"
+                            name="isVegan"
+                            onChange={this.handleChange}
+                            checked={this.state.isVegan}
+                        /> Vegan?
+                    </label>
+                    <br />
+                    
+                    <label>
+                        <input 
+                            type="checkbox"
+                            name="isKosher"
+                            onChange={this.handleChange}
+                            checked={this.state.isKosher}
+                        /> Kosher?
+                    </label>
+                    <br />
+                    
+                    <label>
+                        <input 
+                            type="checkbox"
+                            name="isLactoseFree"
+                            onChange={this.handleChange}
+                            checked={this.state.isLactoseFree}
+                        /> Lactose Free?
+                    </label>
+                    <br />
+                    
+                    <button>Submit</button>
+                </form>
+                <hr />
+                <h2>Entered information:</h2>
+                <p>Your name: {this.state.firstName} {this.state.lastName}</p>
+                <p>Your age: {this.state.age}</p>
+                <p>Your gender: {this.state.gender}</p>
+                <p>Your destination: {this.state.destination}</p>
+                <p>Your dietary restrictions:</p>
+                <p>Vegan: {this.state.isVegan ? "Yes" : "No"}</p>
+                <p>Kosher: {this.state.isKosher ? "Yes" : "No"}</p>
+                <p>Lactose Free: {this.state.isLactoseFree ? "Yes" : "No"}</p>
+                
+            </main>
+        )
+    }
+}
+export default App
+_____________________________________________________________________________________________________________________________________
+21. REACT CONTAINER AND COMPONENT ARCHITECTURE 
 
 
 
