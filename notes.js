@@ -2747,5 +2747,88 @@ import React from "react"
 import ReactDOM from "react-dom"
 import App from "./App"
 ReactDOM.render(<App />, document.getElementById("root"))
+_____________________________________________________________________________________________________________________________________
+22. WRITING MODERN REACT APPS
+
+React is progressing really quickly. React from a few years ago is quite different than current version. There are some new lifecycle 
+methods and some lifecycle methods that have been depricated. React 16.6 was recently released and have even more functionality. React 17 
+is on the horizon with even more. Some of the modern features I can use when creating React apps are: 
+
+Methods can be written as arrow functions. Arrow functions give a lexical this inside the function. Meaning it does not create its own 
+'this' context but instead uses the 'this' of its surrounding environment. What this means is that you no longer have to bind the methods
+in the constructor anymore. 
+
+    // Change to use arrow functions
+    handleChange(event) {
+        const { name, value } = event.target
+        this.setState({
+            [name]: value
+        })
+    }
+    
+// Updated with arrow functions
+    handleChange = (event) => {
+        const { name, value } = event.target
+        this.setState({
+            [name]: value
+        })
+    }
+
+Another modern feature is the ability to create class variables (like with this.state) but doing so outside of the constructor. This means
+get rid of the constructor entirely. 
+
+class App extends Component {
+    // Change to use class properties
+    constructor() {
+        super()
+        this.state = {
+            firstName: ""
+        }
+    }
+
+class App extends Component {
+    //Updated with class properties and removed constructor
+    state = {firstName: ""}
+        
+
+ * Other modern/advanced React features/topics to learn:
+ * 
+ * Official React Context API - https://reactjs.org/docs/context.html
+ * Error Boundaries - https://reactjs.org/docs/error-boundaries.html
+ * render props - https://reactjs.org/docs/render-props.html
+ * Higher Order Components - https://reactjs.org/docs/higher-order-components.html
+ * React Router - https://reacttraining.com/react-router/core/guides/philosophy
+ * React Hooks - https://reactjs.org/docs/hooks-intro.html
+ * React lazy, memo, and Suspense - https://reactjs.org/blog/2018/10/23/react-v-16-6.html
+ 
+_____________________________________________________________________________________________________________________________________
+23. SUMMARY OF CORE CONCEPTS
+
+There is so much more to learn about React. But now know/understand the building blocks I need to build to start building React apps 
+myself.  
+
+JSX: wrapper around Javascript that allows me to write my UI using a familiar syntax html. It helps so that writing components feels 
+familiar. 
+
+Components: There are 2 types of components I can make, functional component and class based component. If I need state or lifecycle 
+methods, use a class based component. Use functional component for all other needs. It appears React will release features that allow
+functional components to handle what class based components do. 
+    function App(props) {}
+    class App extends React.Component {}
+
+Styling: If using CSS classes, will need to use class name inside of JSX in order to assign a class to the element. OR can write CSS as 
+style object directly in Javascript. Which is helpful if i need the style to be dynamic. Or if I prefer to style right within the 
+component. 
+
+Props: Primary way to pass data down the component tree. 
+
+State: Allows components to hold on to and modify the data. Use setState() whenever I want to modify state. 
+
+Conditional Rendering: Using various vanilla Javascript techniques, can determine what parts of the UI I want to show up at a given time. 
+Often time this is done by some variable thats held in either state or props. 
+
+Forms: Gathering input from users in form elements. 
+
+
 
 */
