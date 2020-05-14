@@ -297,13 +297,13 @@ ________________________________________________________________________________
     return function(props) {                      -> returns a new component that is a function that takes props
         return (                                  -> that component then renders the <C/> component
             <C favoriteNumber={42} {...props}/>   -> pass along any props that have been passed to component. Add augmentations 
-        )
+        )                                         -> this will be passed as props to the App component 
     }
 }
 
-Go to App.js and import with FavoriteNumber function. 
+Go to App.js and import FavoriteNumber function. 
 Invoke function on the App by passing App as the parameter. -> export default withFavoriteNumber(App). 
-Whats happened is that the App component is receiving props that were giving to it from the return statement in the withFavoriteNumber
+Whats happens is that the App component is receiving props that were giving to it from the return statement in the withFavoriteNumber
 component 
         return (
             <C favoriteNumber={42} {...props}/>
@@ -315,15 +315,447 @@ function App(props) {return (<div>{props.favoriteNumber}</div>)}
 import React from "react"
 import {withFavoriteNumber} from "./withFavoriteNumber"
 
-function App(props) {
+function App(props) {  -> receives augmented props from withFavoriteNumber function  
     return (
         <div>{props.favoriteNumber}</div>
     )
 }
-export default withFavoriteNumber(App)
+export default withFavoriteNumber(App) -> invokes withFavoriteNumber function on App component by passing App as a parameter. 
 
 _____________________________________________________________________________________________________________________________________
-5. HIGHER ORDER COMPONENTS - PT5: USED IN REAL SCENARIO 
-  
+5. HIGHER ORDER COMPONENTS - PT5: REAL SCENARIO 
+
+The App component is rendering a <Menu /> and <Favorite /> component. 
+
+    import React from "react"
+    import Menu from "./Menu"
+    import Favorite from "./Favorite"
+
+    function App() {
+        return (
+            <div>
+                <Menu />
+                <hr />
+                <Favorite />
+            </div>
+        )
+    }
+    export default App
+
+Menu is a stateful component. The ability of the Menu is to either show or hide the menu. There is a 'Hide Menu' button that turns into a
+'Show Menu' button. There is a toggleShow() method which sets the state and flips the show boolean from either true or false or false to 
+true. Render has some display logic that uses that state to either hide menu or show menu. Whether to display it or not display it. In 
+essence, this is toggling the boolean and the boolean determines if the menu shows or hides. 
+
+    import React, {Component} from "react"
+
+    class Menu extends Component {
+        state = {
+            show: true
+        }
+        
+        toggleShow = () => {
+            this.setState(prevState => {
+                return {
+                    show: !prevState.show
+                }
+            })
+        }
+        
+        render() {
+            return (
+                <div>
+                    <button onClick={this.toggleShow}>{this.state.show ? "Hide" : "Show"} Menu </button>
+                    <nav style={{display: this.state.show ? "block" : "none"}}>
+                        <h6>Signed in as Coder123</h6>
+                        <a>Your Profile</a>
+                        <a>Your Repositories</a>
+                        <a>Your Stars</a>
+                        <a>Your Gists</a>
+                    </nav>
+                </div>
+            ) 
+        }
+    }
+    export default Menu
+
+The Favorite component is doing something similar to Menu. It has a boolean called isFavorited that indicates if something is toggled or 
+not. The toggleFavorite method/function toggles on and off. Render has some display logic that uses the isFavorited boolean to determine 
+if it should be full heart or an empty heart. When the heart is clicked, it toggles the state and displays the full heart or empty heart. 
+
+    import React, {Component} from "react"
+
+    class Favorite extends Component {
+        state = {
+            isFavorited: false
+        }
+        
+        toggleFavorite = () => {
+            this.setState(prevState => {
+                return {
+                    isFavorited: !prevState.isFavorited
+                }
+            })
+        }
+        
+        render() {
+            return (
+                <div>
+                    <h3>Click heart to favorite</h3>
+                    <h1>
+                        <span 
+                            onClick={this.toggleFavorite}
+                        >
+                            {this.state.isFavorited ? "❤️" : "♡"}
+                        </span>
+                    </h1>
+                </div>
+            ) 
+        }
+    }
+    export default Favorite
+
+Although some of the names are different, the implementation of the Menu and Favorite component are the same. This will be a great use case
+of using HOC to share the toggle methods and state between the 2 components that need it. HOC can be thought of as a function that can beef
+up or improve the abilities of other components. Separating these components into a HOC can be a bit confusing but surely achievable. 
+
+First step is to create a folder entitled HOCs. Inside folder create a file called withToggler.js. Remember the definition of a HOC: 
+"HOC is a function that takes a component as a parameter and returns a new component wrapping the given component and "supercharging" it 
+by giving it some extra abilities."  This HOC will return a new Toggler component, which needs to be created. Before creating the Toggler
+component, implement the withToggler function on the Menu and Favorite components to get a better idea as to why I'm returning a Toggler. 
+
+    export function withToggler(component) {
+        return function(props) {
+            return (
+                <Toggler />
+            )
+        }
+    }
+    export withToggler
+
+Go to Favorite component and import withToggler. Will use the curly braces because it is a 'named' import because did not export withToggler
+using 'export default'. Can now use the withToggler function in the Favorite component. Since an HOC is a function that takes a component
+as a parameter, 1st step is to invoke the withToggler function on Favorite component by passing Favorite as a parameter:  
+
+    import {withToggler} from "./HOCs/withToggler"
+    export default withToggler(Favorite)
+
+May also be helpful to split on 2 lines. Because a new function is returned, which is the supercharged component. So not exporting the 
+component Favorite, but instead the enhanced/supercharged version of the component.   
+    const SuperchargedFavoriteComponent = withToggler(Favorite)
+    export default SuperchargedFavoriteComponent
+
+Go to Menu component and implement withToggler function by repeating process (import withToggler and export default withToggler(Menu)).
+    
+    import {withToggler} from "./HOCs/withToggler"
+    export default withToggler(Menu) 
+
+Back to withToggler HOC. Again, withToggler function will accept a component and return a new component that will essentially wrap around
+the given component. At this point the <Toggler /> component does not exist and currently not using the component that was passed in to
+the withToggler(component) function. So next step is to pass the component down to Toggler via props. And ensure any props that get passed 
+to component get passed along. 
+
+    export function withToggler(component) { -> runs on top of the Favorite component and will receive Favorite component as a prop
+        return function(props) {             -> returns a new component that is a function that takes props
+            return (
+                <Toggler component={component} {...props}/>  ->passing component down and passing along props that get passed to component
+            )
+        }
+    }
+ 
+The Toggler component is going to hold all of the functionality and state that the Menu and Favorites components are duplicating. So need
+to create the Toggler component and because it will hold state will use a class. The state will be a generic toggler 'on' with a default 
+value of false. Then create a toggle method that sets the state to flip from on to off and off to on. Will need to know what previous state
+was and setState() will return new state where the on value is the opposite of previous state when its on. 
+
+For render(), need to understand what exactly is the component rendering/what will appear on screen. Since I passed a component prop to 
+<Toggler/>, ->     <Toggler component={component} {...props}/>
+
+in the Toggler class, I should have 'this.props.component' and the value ('{component}' in component={component}) should be the component
+that I am trying to render (what I'm trying to render is the the component passed in as a parameter to withToggler(component) function). 
+I could render a new variable called Components that equals this.props.component. So when I run the withToggler() function 
+(which runs on top of the Favorite component by way of export default withToggler(Favorite)). So this.props.component should come from 
+the component passed in the withToggler(component) function and passed down in the instance of Toggler by way of component={component}. 
+All of this under the hood will be captured in the variable Component.  And what is returned is a new instance of <Component />. If I were
+to run an instance of <Component /> at this point, what will appear on the page is what the Favorite component renders. Now I can begin
+supercharging the new variable Component by passing to the instance of <Component /> a prop called on and give it a value of this.state.on.  
+In addition to the state variable, provide new instance of <Component /> a way to change the state variable by passing the toggle method 
+down. Also include any props that have passed along via {...this.props}. 
+
+    render() {
+            const Component = this.props.component
+            return (
+                <Component on={this.state.on} toggle={this.toggle} {...this.props} />
+            )
+        }
+
+Here is the current withToggler HOC. In summary, this is what is happening. In the Favorites component, I am importing {withToggler}. 
+withToggler is function that takes a component and returns a new component. That component wraps the <Toggler /> component. The component
+passed to withToggler (which is the Favorite component) is passed down to the </Toggler /> component. In the Toggler class component, there
+is some stateful logic via state object and toggle method. Render returns the component that was originally passed to withToggler(). 
+So started with the Favorites component which was passed to withToggler() as parameter entitled components. Components was passed down to
+the <Toggler /> instance and the <Toggler /> finally rendered it. 
+
+import React, {Component} from "react"
+
+class Toggler extends Component {
+    state = {
+        on: false
+    }
+    
+    toggle = () => {
+        this.setState(prevState => {
+            return {
+                on: !prevState.on
+            }
+        })
+    }
+    
+    //withToggler() receives parameter (which is the Favorite component). withToggler() returns a new component that accepts props parameter.  
+    //this.props.component captures the Favorite component and puts it in a variable called Component. Returns an instance of <Component /.  
+    //Supercharges the Favorite component by adding new state variable 'on' and ability to change variable by passing the toggle method.      
+    render() { 
+        const Component = this.props.component 
+        return (
+            <Component on={this.state.on} toggle={this.toggle} {...this.props} />  ->returns component originally passed to withToggler()
+        )
+    }
+}
+
+export function withToggler(component) { -> runs on top of the Favorite component and will receive Favorite component as a prop
+    return function(props) {             -> returns a new component that is a function that takes props and wraps the <Toggler/> component
+        return (
+            <Toggler component={component} {...props}/>   ->passing component from withToggler() down and passing along props that get passed to component
+        )
+    }
+}
+
+The Toggler class has added the stateful logic and gives it to the original component via props:  
+        return (<Component on={this.state.on} toggle={this.toggle} {...this.props} />)}
+This is beneficial because I can now remove the stateful logic from Favorite.js. Once stateful logic removed, will need to make slight 
+changes to the Favorites component because currently component is not creating its own method to toggle its own state. Need to update 
+onClick to {this.props.toggle}. This is so because in withToggler component, I am rendering the component and giving it a prop called 
+toggle via this.props.toggle. Similarly, passing down the state thru props called 'on'. So in Favorite.js, its no longer this.state.isFavorited 
+but instead should be updated to this.props.on. Can click the heart on the screen and it changes. 
+
+import React, {Component} from "react"
+import {withToggler} from "./HOCs/withToggler"
+
+class Favorite extends Component {
+    render() {
+        return (
+            <div>
+                <h3>Click heart to favorite</h3>
+                <h1>
+                    <span 
+                        onClick={this.props.toggle}
+                    >
+                        {this.props.on ? "❤️" : "♡"}
+                    </span>
+                </h1>
+            </div>
+        ) 
+    }
+}
+const SuperchargedFavoriteComponent = withToggler(Favorite)
+export default SuperchargedFavoriteComponent
+
+Because of withToggler, the Favorites and Menu components are no longer dealing with state and lifecycle methods, can make simplify them
+to be functional components. The changed classed components turned functional components below. No longer using Component and updating 
+removing instances of 'this'.  
+
+    import React from "react"
+    import {withToggler} from "./HOCs/withToggler"
+
+    function Menu(props) {
+        return (
+            <div>
+                <button onClick={props.toggle}>{props.on ? "Hide" : "Show"} Menu </button>
+                <nav style={{display: props.on ? "block" : "none"}}>
+                    <h6>Signed in as Coder123</h6>
+                    <a>Your Profile</a>
+                    <a>Your Repositories</a>
+                    <a>Your Stars</a>
+                    <a>Your Gists</a>
+                </nav>
+            </div>
+        ) 
+    }
+    export default withToggler(Menu)
+
+
+    import React, {Component} from "react"
+    import {withToggler} from "./HOCs/withToggler"
+
+    function Favorite(props) {
+        return (
+            <div>
+                <h3>Click heart to favorite</h3>
+                <h1>
+                    <span 
+                        onClick={props.toggle}
+                    >
+                        {props.on ? "❤️" : "♡"}
+                    </span>
+                </h1>
+            </div>
+        ) 
+    }
+    const SuperchargedFavoriteComponent = withToggler(Favorite)
+    export default SuperchargedFavoriteComponent    
+
+The withToggler component can accept an additional parameter such as an optionsObject. The optionsObject can have a property called 
+defaultOnValue. This will be an additional value passed down to <Toggler />. Instead of saying 'on' value will always be false, 
+can update the state to obtain the 'on' value from the defaultOnValue via props. So optionsObject is a new 2nd parameter in withToggler() 
+that is an object that has a property called defaultOnValue. Now need to implement this in the Favorite and Menu components. Instead of 
+just passing the components, also need to pass in the defaultOnValue.  For Favorite, the default value is false and for Menu the default
+value is true. Refresh page and the menu is showing by default and the heart is un-favorited by default. Final components and HOC below. 
+
+import React, {Component} from "react"
+class Toggler extends Component {
+    state = {
+        on: this.props.defaultOnValue
+    }
+    
+    toggle = () => {
+        this.setState(prevState => {
+            return {
+                on: !prevState.on
+            }
+        })
+    }
+    
+    render() {
+        const Component = this.props.component
+        return (
+            <Component on={this.state.on} toggle={this.toggle} {...this.props} />
+        )
+    }
+}
+
+export function withToggler(component, optionsObj) {
+    return function(props) {
+        return (
+            <Toggler component={component} defaultOnValue={optionsObj.defaultOnValue} {...props}/>
+        )
+    }
+}
+
+import React from "react"
+import {withToggler} from "./HOCs/withToggler"
+function Menu(props) {
+    return (
+        <div>
+            <button onClick={props.toggle}>{props.on ? "Hide" : "Show"} Menu </button>
+            <nav style={{display: props.on ? "block" : "none"}}>
+                <h6>Signed in as Coder123</h6>
+                <a>Your Profile</a>
+                <a>Your Repositories</a>
+                <a>Your Stars</a>
+                <a>Your Gists</a>
+            </nav>
+        </div>
+    ) 
+}
+export default withToggler(Menu, {defaultOnValue: true})
+
+import React, {Component} from "react"
+import {withToggler} from "./HOCs/withToggler"
+function Favorite(props) {
+    return (
+        <div>
+            <h3>Click heart to favorite</h3>
+            <h1>
+                <span 
+                    onClick={props.toggle}
+                >
+                    {props.on ? "❤️" : "♡"}
+                </span>
+            </h1>
+        </div>
+    ) 
+}
+const SuperchargedFavoriteComponent = withToggler(Favorite, {defaultOnValue: false})
+export default SuperchargedFavoriteComponent
+
+Recap of HOC:
+
+The initial problem was that the Favorite and Menu components were implementing their own logic which essentially did the same thing. Both
+had a single boolean and had a toggle method for the boolean. So you had a this duplicated logic. The problem is duplicated logic and the
+goal is reusability. 
+
+withToggler() takes a component and instead of rendering the component immediately, it renders a custom component <Toggler />. In order for 
+<Toggler /> to eventually render the component I want to render, I pass that component down to <Toggler />. Then the Toggler component 
+(class Toggler extends Component) maintains the state and the ability to update the state by way of state object and toggle function. 
+Then it finally renders the component I passed down to it. Instead of rendering the component as a plain component, the component is 
+enhanced with an on prop and a toggle prop. Also passes down any other props so that they don't get lost in the connections. 
+
+One last adjustment regarding withToggler...  Splitting hairs but nice to know...  With {...this.props} I am passing the rest of props down. 
+
+ render() {
+        const Component = this.props.component
+        return (
+            <Component on={this.state.on} toggle={this.toggle} {...this.props} />
+        )
+    }
+
+With {...this.props}, I've actually tacked on a few extra props such as component and defaultOnValue. These are not going to be relevant for
+the Menu or Favorite component. I can use the spread operator to pull component and defaultOnValue out. 
+    <Toggler component={component} defaultOnValue={optionsObj.defaultOnValue} {...props}/>
+
+Can do this by instead of using const Component = this.props.component. Can use object destructuring by saying. 
+Can instead use const {component, defaultOnValue, ...props} = this.props.  This directly pulls out component, defaultOnValue while ...props
+pulls out the rest of props as a variable called props using spread operator and set this destructuring object equal to this.props. 
+There is a little trick when destructuring. Since I am rendering capital 'C' <Component /> to stay consistent with the capitalization of 
+components, I can provide a name to the component property. What I am saying here is pull out the component property from this.props and 
+but call it Component (capital C) instead of component (lower c). This also makes the rest of props (...props) not include the component 
+and defaultOnValue properties. 
+    const {component: Component, defaultOnValue, ...props} = this.props
+
+And instead of returning {...this.props} will return {...props}
+
+ render() {
+        const {component: Component, defaultOnValue, ...props} = this.props
+        return (
+            <Component on={this.state.on} toggle={this.toggle} {...props} />   -> was {...this.props}
+        )
+    }
+
+UPDATE...Because withToggler is importing {Component}, to avoid potential bugs, best to render <C/> instead of <Component />
+ render() {
+        const {component: C, defaultOnValue, ...props} = this.props
+        return (
+            <C on={this.state.on} toggle={this.toggle} {...props} />   -> was {...this.props}
+        )
+    }
+
+This approach prevents Menu and Favorites component from being polluted with props they wont need/use like component and defaultOnValue. 
+
+In current React environment, to build re-usability in program will likely use React Hooks instead of Higher Order Components(HOC). But 
+HOC's are good to know if working with legacy code or 3rd party libraries that use HOC's. It may not be totally necessary to know how to 
+write my own HOC. But it is important to clearly/deeply understand the topic. Instead of using HOC's w/o understanding them. Especially 
+if I am looking to get a job using React, it will be most helpful to get as many tools under my belt as possible. 
+
+_____________________________________________________________________________________________________________________________________
+6. RENDER PROPS (OVERVIEW)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 */
