@@ -323,7 +323,7 @@ function App(props) {  -> receives augmented props from withFavoriteNumber funct
 export default withFavoriteNumber(App) -> invokes withFavoriteNumber function on App component by passing App as a parameter. 
 
 _____________________________________________________________________________________________________________________________________
-5. HIGHER ORDER COMPONENTS - PT5: REAL SCENARIO 
+5. HIGHER ORDER COMPONENTS - PT5:TOGGLER EXAMPLE  
 
 The App component is rendering a <Menu /> and <Favorite /> component. 
 
@@ -739,21 +739,512 @@ if I am looking to get a job using React, it will be most helpful to get as many
 _____________________________________________________________________________________________________________________________________
 6. RENDER PROPS (OVERVIEW)
 
+Callback functions can help explain the concept of render props. The callback function is the 2nd parameter in the addEventListener().
+Can use callback functions because the method that is being called allows for it and even expects the callback function. addEventListener()
+specifically needs a callback function as the 2nd parameter. As the programmer, I can use the callback function to describe/perform some
+additional behavior that I want to happen. But I hand that function off to a method someone else wrote, ie the addEventListener(). And that 
+method, ie the addEventListener() then gets to call my callback function whenever its code allows it to. And since its the other method, 
+ie the addEventListener(), it gets to decide what parameters to pass to my initial callback function. 
+
+In the event listeners below, the 1st parameter is the event type to be listened for. The 2nd parameter is the function that I want to have 
+called whenever the 'click' event on the 'button' element happens. The purpose of the callback is it allows me a ton of flexibility to run 
+whatever code I want to run when the event occurs. However, I can delegate the responsibility of listening for the specified event to this 
+method that the creators of JavaScript wrote. I don't have to worry about how to listen for events and do something in response. Instead, I
+just have to specify what to do in response.  
+
+    document.getElementById("button").addEventListener("click", function() {
+        console.log("Clicked!")
+    })
+
+    document.getElementById("input").addEventListener("input", function() {
+        console.log("Input changed!")
+    })
+
+    document.getElementById("box").addEventListener("mouseover", function() {
+        console.log("Hovered in box!")
+    })
 
 
+    CSS ->
+    .box {
+    height: 200px;
+    width: 200px;
+    background-color: firebrick;
+    border: 1px solid darkred;
+}
 
 
+It is tempting to try to add parameters to these functions just like I would with a function I was creating on my own. For example, when a
+button gets clicked I would like to console log the name. The approach below seems logical because with functions I can specify parameters
+and use those parameters in the body of the function. This will not work as expected. An '[object MouseEvent] clicked the button!' will 
+be returned. When I define the callback function, I can provide the function with any parameter. But whoever calls the function actually
+decides what the actual parameter will be. The addEventListener() is calling the function, so it gets to decide what the parameter will
+be for the callback function. 
+
+    document.getElementById("button").addEventListener("click", function(name) {
+        console.log(`${name} clicked the button!`)
+    })
+
+What actually gets put in the parameter is the event because it will be an object that represents the click event that just happened. And
+the click event will have a ton of useful info. Whenever I use the addEventListener() method, I cannot decide what the callback function
+will be called with for its argument. Instead I will likely have to research documentation to understand what arguments its going to be 
+called with. Understanding the concepts of callback functions and the parameters that gets passed to them helps with understanding 
+the foundation of render props. 
+
+    document.getElementById("button").addEventListener("click", function(event) {    
+    })
+_____________________________________________________________________________________________________________________________________
+7. RENDER PROPS (DETAIL)
+
+Here App component is rendering an instance of <Example /> and the Example component is rendering an <h1> 'This is an example'. 
+
+    import React from "react"
+    import Example from "./Example"
+    function App() {
+        return (
+            <div>
+                <Example />
+            </div>
+        )
+    }
+    export default App
 
 
+    import React from "react"
+    function Example(props) {
+        return <h1>This is an example</h1>
+    }
+    export default Example
 
+In App.js, I can pass down props to a custom component. I can pass down a custom prop of name set to the string of Bob. In the
+Example component, I am receiving props from App and can access the prop via props.name, because the name of the prop is name. 
 
+    function App() {
+        return (
+            <div>
+                <Example name={"Bob"} />
+            </div>
+        )
+    }
 
+    function Example(props) {
+        return <h1>Hi {props.name}</h1>
+    }
 
+A function can also be passed down as a prop. What shows in console.log is 'Hey there'. In Example.js,
+I am receiving a prop, but the prop is actually a function that I am calling and is returning the string 'Hey there'.  Whats rendered 
+on the page is 'Hi Hey There'.This works because functions are just as valid an argument to another function in Javascript and they work
+the same when I am passing them down as props in React. 
 
+    function App() {
+        return (
+            <div>
+               <Example name={function() {return "Hey there"}} />
+            </div>
+        )
+    }
 
+    function Example(props) {
+        console.log(props.name)
+        return <h1>Hi {props.name()}</h1>  -> receiving props from App and calling the function that was passed down as a prop. 
+    }
 
+How is the functional component in Example different than a regular JavaScript function in App?  The difference is the job of a functional
+component is that it needs to return JSX specifically. If functional components return JSX, instead of having App return a string, can have
+it return JSX.   
 
+function App() {
+        return (
+            <div>
+                <Example name={function() {return <h1>Hey there</h1>}} />
+            </div>
+        )
+    }
 
+    function Example(props) {
+        return (
+            <div>
+                {props.name()}
+            </div>
+        )
+    }
+
+In App.js the function now has a spot for arguments.  In Example.js, I can invoke props.name
+with an argument like "Sarah". This parameter will be accessible in App. The App component did not get to choose what data would be given
+to the render function of <Example />. App renders an instance of the <Example /> component but does not get to choose what data will be
+passed to the 'name' parameter in the render function. However, I do get to use parameter how I want. Since I have access the parameter, I 
+can render an <h1> or put the parameter in an unordered list. The render component is providing me with data to be used in any way that I
+choose.  
+
+From the perspective of the Example component. It has no idea how I am going to render the data. But it does allow me to pass the data to
+the App component. It basically saying, I am going to take whatever function I received (in this case from App), I'm going to call the 
+function and pass some data to you, assuming you will use the data somehow by returning some JSX. 
+
+Designing the program this way allows for separation of the user interface. App component decides what it should render and the data is
+contained in the Example component. 
+
+    function App() {
+        return (
+            <div>
+                <Example render={          -> changed prop name to render, name of prop passed to Example will be called render
+                    function(name) {       -> function passed accepts a parameter 
+                        return <h1>Hey there, {name}</h1>  -> renders on page Hey there + the value provided as argument via Example
+                    }
+                }/>
+            </div>
+        )
+    }
+
+    function Example(props) {
+        return (
+            <div>
+                {props.render("Sarah")}   -> takes <h1> from App + Sarah to render Hey there Sarah. In {} because Javascript inside JSX
+            </div>
+        )
+    }
+
+Can make example a bit more interesting. The Example component provided the App component with some data, a boolean value. App received
+the data in form of the argument isDaytime. What's rendered depends upon the data passed by the Example component. 
+
+    function App() {
+        return (
+            <div>
+                <Example render={
+                    function(isDaytime) {
+                        return (
+                            <h1>{isDaytime ? "Good day" : "Good evening"}, Bob!</h1>
+                        )
+                    }
+                }/>
+            </div>
+        )
+    }
+
+    function Example(props) {
+        return (
+            <div>
+                {props.render(true)}
+            </div>
+        )
+    }
+_____________________________________________________________________________________________________________________________________
+8. RENDER PROPS (TOGGLER EXAMPLE)
+
+Render props are a 2nd iteration on the idea of reusability. If have to choose between HOC and render props, will likely choose render 
+props. This example refactors the HOC example by using render props. The idea is that I created a function that a component and renders 
+the Toggler that I created and passes the component down so that the Toggler can then render that component. The approach with HOC is that
+there is a bunch of boilerplate code that I have to write and also causes a lot of misdirection. It can be difficult to look at the Favorite
+component, have it look like a regular functional component and notice that it is being augmented by withToggler(). Then go to withToggler()
+and follow the logic of withToggler() that its rendering a Toggler and passing that component down and Toggler is finally rendering that 
+component and passing some stuff to it. 
+
+With render props, I can simply render the function that will be passed to the component. Let tha parent of the component decide what should
+be rendered and pass the state and logic to that function. That way, can just export the Toggler function and use it where I actually want 
+the Toggler to interact with the Favorite and Menu components. 
+
+Start with Favorites.js. I want to return a <Toggler />. The <Toggler /> will take a prop called render and pass to it a function. And want
+the function to return some JSX. 
+
+    function Favorite(props) {
+        return (
+            <Toggler render={function() {
+                return (
+                    <div>
+                        <h3>Click heart to favorite</h3>
+                        <h1>
+                            <span 
+                                onClick={props.toggle}
+                            >
+                                {props.on ? "❤️" : "♡"}
+                            </span>
+                        </h1>
+                    </div>
+                )
+            }}/>
+        ) 
+    }
+
+Now need to set up Toggler so that it can accept a render prop, call it and pass some data to it. The class Toggler is a stateful component
+and is calling render().  Toggler gets to choose what is want to pass in the render() call. So what data do I want to pass to the render()
+method so that its useful to place that is using the Toggler component?  Favorite.js is using the Toggler component and is expecting some
+info to display the 'on' variable and to do something on a click. This info is housed in Toggler which has state and the toggle method. So 
+in the render call, can pass the current state of the 'on' property and also the toggle method. 
+
+    class Toggler extends Component {
+        state = {
+            on: this.props.defaultOnValue
+        }
+        
+        toggle = () => {
+            this.setState(prevState => {
+                return {
+                    on: !prevState.on
+                }
+            })
+        }
+        
+        render() {
+            return (
+                <div>
+                    {this.props.render(this.state.on, this.toggle)}
+                </div>
+            )
+        }
+    }
+
+On Favorite.js, the function is receiving 2 parameters from the Toggler, on and the toggle method. So the parameters in the function 
+can be called on and toggle. The Favorite component is not receiving the data thru props thus any reference of props should be removed 
+from onclick={} and the ternary operator. Unlike the HOC, the data is passed thru the 2 parameters. 
+
+    function Favorite(props) {
+        return (
+            <Toggler render={
+                function(on, toggle) {
+                    return (
+                        <div>
+                            <h3>Click heart to favorite</h3>
+                            <h1>
+                                <span 
+                                    onClick={toggle}
+                                >
+                                    {on ? "❤️" : "♡"}
+                                </span>
+                            </h1>
+                        </div>
+                    )
+                }
+            }/>
+        ) 
+    }
+
+Refactored as an arrow function.  The <Toggler /> is passing a function and receiving some state and the ability to toggle the state 
+by way of the parameters on and toggle. JSX then uses the on and toggle to change the heart. Using render props is considerably simpler
+than using HOC's to solve the same problem.    
+
+    function Favorite(props) {
+        return (
+            <Toggler render={
+                (on, toggle) => (
+                    <div>
+                        <h3>Click heart to favorite</h3>
+                        <h1>
+                            <span 
+                                onClick={toggle}
+                            >
+                                {on ? "❤️" : "♡"}
+                            </span>
+                        </h1>
+                    </div>
+                )
+            }/>
+        ) 
+    }
+
+For the Menu component, the function needs to render the <Toggler />, which will take a prop called render which will be equal to a 
+function. And the function will return some JSX. The function will be called with the current state of on and with the ability to toggle. 
+Remove references of props from onclick and style. 
+
+function Menu(props) {
+    return (
+        <Toggler defaultOnValue={true} render={(on, toggle) => (
+            <div>
+                <button onClick={toggle}>{on ? "Hide" : "Show"} Menu </button>
+                <nav style={{display: on ? "block" : "none"}}>
+                    <h6>Signed in as Coder123</h6>
+                    <p><a>Your Profile</a></p>
+                    <p><a>Your Repositories</a></p>
+                    <p><a>Your Stars</a></p>
+                    <p><a>Your Gists</a></p>
+                </nav>
+            </div>
+        )}/>
+    ) 
+}
+
+If user forgets to include the defaultOnValue prop, can make use of default props in React. Default props is a static property, Meaning 
+can use the static keyword and actually bring inside of the class. The static defaultProps value will be set to false. This is good 
+practice if the component is expecting a prop in order to function but theres a chance someone may not provide it. The menu should be 
+showing by default and the heart should be unfavorited by default. 
+
+Revised Components: 
+
+App.js file ->
+import React from "react"
+import Menu from "./Menu"
+import Favorite from "./Favorite"
+
+function App() {
+    return (
+        <div>
+            <Menu />
+            <hr />
+            <Favorite />
+        </div>
+    )
+}
+export default App
+
+Favorite.js file ->
+import React, {Component} from "react"
+import Toggler from "./Toggler"
+
+function Favorite(props) {
+    return (
+        <Toggler render={
+            (on, toggle) => (
+                <div>
+                    <h3>Click heart to favorite</h3>
+                    <h1>
+                        <span 
+                            onClick={toggle}
+                        >
+                            {on ? "❤️" : "♡"}
+                        </span>
+                    </h1>
+                </div>
+            )
+        }/>
+    ) 
+}
+export default Favorite
+
+Menu.js file ->
+import React from "react"
+import Toggler from "./Toggler"
+
+function Menu(props) {
+    return (
+        <Toggler defaultOnValue={true} render={(on, toggle) => (
+            <div>
+                <button onClick={toggle}>{on ? "Hide" : "Show"} Menu </button>
+                <nav style={{display: on ? "block" : "none"}}>
+                    <h6>Signed in as Coder123</h6>
+                    <p><a>Your Profile</a></p>
+                    <p><a>Your Repositories</a></p>
+                    <p><a>Your Stars</a></p>
+                    <p><a>Your Gists</a></p>
+                </nav>
+            </div>
+        )}/>
+    ) 
+}
+export default Menu
+
+Toggler.js file ->
+import React, {Component} from "react"
+
+class Toggler extends Component {
+    state = {
+        on: this.props.defaultOnValue
+    }
+    
+    static defaultProps = {
+        defaultOnValue: false
+    }
+    
+    toggle = () => {
+        this.setState(prevState => {
+            return {
+                on: !prevState.on
+            }
+        })
+    }
+    
+    render() {
+        return (
+            <div>
+                {this.props.render(this.state.on, this.toggle)}
+            </div>
+        )
+    }
+}
+export default Toggler
+
+PROGRAM WITH ES6 SIMPLIFICATIONS/DESTRUCTURING************************************************************************  
+
+Toggler.js file (with ES6 Simplifications->
+import React, {Component} from "react"
+
+class Toggler extends Component {
+    state = {
+        on: this.props.defaultOnValue
+    }
+    
+    static defaultProps = {
+        defaultOnValue: false
+    }
+    
+    toggle = () => {
+        this.setState(prevState => ({on: !prevState.on}))
+    }
+    
+    render() {
+        return (
+            <div>
+                {this.props.render({  -> instead of calling 2 parameters, now wrapped in an object. Also updated Favorite & Menu. 
+                    on: this.state.on, 
+                    toggle: this.toggle
+                })}
+            </div>
+        )
+    }
+}
+export default Toggler
+
+Favorite.js file (Destructuring) -> 
+import React, {Component} from "react"
+import Toggler from "./Toggler"
+
+function Favorite(props) {
+    return (
+        <Toggler render={
+            ({on, toggle}) => ( ->  wrapping in {} means destructuring the object that is being passed to this function from Toggler
+                <div>
+                    <h3>Click heart to favorite</h3>
+                    <h1>
+                        <span 
+                            onClick={toggle}
+                        >
+                            {on ? "❤️" : "♡"}
+                        </span>
+                    </h1>
+                </div>
+            )
+        }/>
+    ) 
+}
+export default Favorite
+
+Menu.js file (Destructuring) -> 
+import React from "react"
+import Toggler from "./Toggler"
+
+function Menu(props) {
+    return (
+        <Toggler defaultOnValue={true} render={({on, toggle}) => (  -> destructuring object that is being pass to function from Toggler
+            <div>
+                <button onClick={toggle}>{on ? "Hide" : "Show"} Menu </button>
+                <nav style={{display: on ? "block" : "none"}}>
+                    <h6>Signed in as Coder123</h6>
+                    <p><a>Your Profile</a></p>
+                    <p><a>Your Repositories</a></p>
+                    <p><a>Your Stars</a></p>
+                    <p><a>Your Gists</a></p>
+                </nav>
+            </div>
+        )}/>
+    ) 
+}
+export default Menu
+
+The idea of render props were not built into React. React did not anticipate people using render props from the beginning. Instead its a
+pattern that has emerged by making use of things that are already available in Javascript and React like passing functions down as props. 
+And as such, there will be a bunch of different ways I can make use of render props. This is just a single way, but not the only way. 
+There are multiple ways to use this concept/pattern. Again, render props are significantly much simpler than HOC's to think/reason about 
+and also to write. 
+
+_____________________________________________________________________________________________________________________________________
+8a. RENDER PROPS (PRACTICE)
 
 
 
