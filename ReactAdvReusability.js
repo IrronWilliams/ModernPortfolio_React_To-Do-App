@@ -965,7 +965,7 @@ the function to return some JSX.
     }
 
 Now need to set up Toggler so that it can accept a render prop, call it and pass some data to it. The class Toggler is a stateful component
-and is calling render().  Toggler gets to choose what is want to pass in the render() call. So what data do I want to pass to the render()
+and is calling render().  Toggler gets to choose what it wants to pass in the render() call. So what data do I want to pass to the render()
 method so that its useful to place that is using the Toggler component?  Favorite.js is using the Toggler component and is expecting some
 info to display the 'on' variable and to do something on a click. This info is housed in Toggler which has state and the toggle method. So 
 in the render call, can pass the current state of the 'on' property and also the toggle method. 
@@ -1242,11 +1242,107 @@ pattern that has emerged by making use of things that are already available in J
 And as such, there will be a bunch of different ways I can make use of render props. This is just a single way, but not the only way. 
 There are multiple ways to use this concept/pattern. Again, render props are significantly much simpler than HOC's to think/reason about 
 and also to write. 
-
 _____________________________________________________________________________________________________________________________________
 8a. RENDER PROPS (PRACTICE)
 
+Part 1: Pass the loading state and the data state through to the component needing it.
 
+Part 2: Call the function the DataFetcher is expecting. Should receive the data and the loading state, and return the JSX
+that makes use of that info. If the data is still loading, display "Loading..." in an h1 element, and once the data has loaded, 
+just display the data with `<p>{JSON.stringify(data)}</p>`  With the render props pattern, you can use a custom prop 
+(typically called `render`), OR you can use `props.children`. This approach uses props.children. 
 
+The DataFetcher is a class component that is holding a loading state and the data I am fetching. As soon as the data mounts, it will set
+the loading state to true. And then it will do a request to try to get the url and the url is being passed thru props 
+(because url passed in instance of <DataFetcher /> via App.js. Once data received, loading is set to false because it has completed 
+loading and sets the data that came from API to the data property.  
+
+Start with DataFetcher. In the render props pattern, need to call a function that's being passed to this component. This component doesn't
+care about how the data is being used. Instead its going to leave that task to the component that is using the DataFetcher. What this 
+component does care about is the maintenance of state, and in the componentDidMount, updating state, making the fetch() call and returning
+the data. DataFetcher will render/call this.props.children and pass the data the outside component needs. DataFetcher does not care about
+what is getting rendered, it will only render what the children prop tells it to render. In this case, the children prop needs to be a 
+function because I am calling that function.  Final component for DataFetcher....................................
+
+import React, {Component} from "react"
+class DataFetcher extends Component {
+    state = {
+        loading: false,
+        data: null
+    }
+    
+    componentDidMount() {
+        this.setState({loading: true})
+        fetch(this.props.url)
+            .then(res => res.json())
+            .then(data => this.setState({data: data, loading: false}))
+    }
+    
+    render() {
+        return (
+            this.props.children(this.state.data, this.state.loading)
+        )
+    }
+}
+export default DataFetcher
+
+In App.js, Begin by creating a function for the child prop: 
+ <DataFetcher url="https://swapi.co/api/people/1">
+                {() => {}}
+            </DataFetcher>
+
+DataFetcher will be passing the data and loading status to this function. So now have use to these things. By using the DataFetcher, I get
+to be in charge of what is rendered here. 
+<DataFetcher url="https://swapi.co/api/people/1">
+                {(data, loading) => {}}
+            </DataFetcher>
+
+Final App component.............................................
+import React from "react"
+import DataFetcher from "./DataFetcher"
+
+function App() {    
+    return (
+        <div>
+            <DataFetcher url="https://swapi.co/api/people/1">
+                {(data, loading) => {
+                    return (
+                        loading ? 
+                        <h1>Loading...</h1> :
+                        <p>{JSON.stringify(data)}</p>
+                    )
+                }}
+            </DataFetcher>
+        </div>
+    )
+}
+export default App
+_____________________________________________________________________________________________________________________________________
+9. REACT TREE RENDERING 
+
+In order to understand how to increase the performance of a React app, need to understand how React actually renders the components that 
+it renders. React will recursively render components down one branch until there are no more components to render. What this means is that
+the component at the end of the branch is just rendering a regular html element or not rendering a custom component that I created. 
+Stated visually:
+
+                                        <App/>
+                                          |
+                                        <Grandparent/>
+                                            |
+                                         <Parent/>
+                                             |   
+                                          <Child/>
+                                              |
+                                           <Grandchild/>
+
+Changes to state or props in any component will recursively re-render down the remaining tree whether those components have changed or not. 
+For example, if there is a state change on the Child level, React will re-render the subtree, the instance of the Grandchild component. This 
+will occur even if the state change is with App. React will re-render the entire subtree, even if App was holding its own state and not 
+passing down props. It will cause a significant decrease in performance if components were re-rendered that did not need to be re-rendered.
+
+React has provided a few ways to optimize this process. The shouldComponentUpdate() method, React.PureComponent and React.memo() are tools
+used to help fix this problem. 
+
+recursive: relating to or involving the repeated application of a rule, definition, or procedure to successive results.
 
 */
