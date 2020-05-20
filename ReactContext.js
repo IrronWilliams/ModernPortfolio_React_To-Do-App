@@ -559,5 +559,374 @@ main {
 ________________________________________________________________________________________________
 5. MOVE CONTEXT PROVIDER TO ITS OWN COMPONENT
 
+At this point, I am passing a hard coded value down to the provider. I want to hook up my button so that it can switch the theme between 
+light and dark. State is used when data is changed in the app. This puts me in a bind because the provider is in a file that is not 
+creating a component which means it would be challenging to put state anywhere because there is not a component to put it inside. 
+So i need to refactor the provider so that it is in its own component. This will allow me to add state and a toggle theme method and hook
+up the button. 
+
+ReactDOM.render(
+    <ThemeContext.Provider value={"light"}>
+        <App />
+    </ThemeContext.Provider>, 
+    document.getElementById("root")
+)
+
+Go to themeContext.js and create a class based component to add state. The class will be ThemeContextProvider and will be used to replace
+ThemeContext.Provider. When using ThemeContext.Provider, I get access to 'this.component' which comes from import ThemeContext. Once the 
+ThemeContextProvider class has been created, will replace ThemeContext.Provider with ThemeContextProvider. 
+
+With themeContext.js, I want to create a variable that holds the value of createContext(), ThemeContext = React.createContext(). This will
+give me the provider and consumer properties. With the class ThemeContextProvider I want to return the provider via ThemeContext.Provider. 
+I want to render {this.props.children} to ensure that ThemeContextProvider can render whatever gets put between the opening 
+and closing tabs of the provider. Although made progress, kinda stuck here because I am default exporting ThemeContext which comes from 
+createContext(). But I need to get the ThemeContextProvider component out of the themeContext.js file so that it can be used elsewhere. If 
+I just change export default ThemeContext to just export the component, export defaultThemeContextProvider, I am no longer exporting the
+consumer that comes with ThemeContext and the consumer is used in the Header and Button. 
+
+import React, {Component} from "react"
+const ThemeContext = React.createContext()
+
+class ThemeContextProvider extends Component {
+    render() {
+        return (
+            <ThemeContext.Provider value={"light"}>
+                {this.props.children}
+            </ThemeContext.Provider>
+        )
+    }
+}
+export default ThemeContext 
+
+To fix this issue, instead of export defaulting just the provider, I am going to export it as a named export, export {ThemeContextProvider}.  
+Then I also need to export the Consumer that's coming from ThemeContext. Exporting ThemeContext.Consumer will result in a syntax error. So to
+fix this, will need to destructure ThemeContext when I pull it in. ThemeContext is an object that has 2 properties, Provider and Consumer.
+So I can destructure/pull these properties out from, const {Provider, Consumer} = React.createContext().  After destructuring, no longer 
+have the ThemeContext object. So will need to update the whats wrapped around this.props.children to Provider. Lastly, since Consumer has
+been destructed can export Consumer and renaming as ThemeContextConsumer. 
+
+import React, {Component} from "react"
+const {Provider, Consumer} = React.createContext()  ->destructuring in order to export Consumer
+
+class ThemeContextProvider extends Component {
+    render() {
+        return (
+            <Provider value={"light"}>             ->new object due to destructuring 
+                {this.props.children}
+            </Provider>
+        )
+    }
+}
+export {ThemeContextProvider, Consumer as ThemeContextConsumer}   
+
+Will need to now update index.js. Instead of a default import (import ThemeContext), needs to be changed to a named import 
+(import {ThemeContextProvider}) and remove the value prop. In Header, also need to change from 'import ThemeContext' to 
+'import {ThemeContextConsumer}'. Also update ThemeContext.Consumer to ThemeContextConsumer. Also update Button.js in same way. As a 
+result of changes, no longer implementing details in index.js. But major benefit is that I can now add state to ThemeContextProvider 
+and provide a method for changing this state. And because its inside of a component, can pass down state instead of a hard coded value 
+and allow for ways to change the state. 
+
+Final programs below. 
+
+from App.js ->
+import React from "react"
+import Header from "./Header"
+import Button from "./Button"
+
+function App() {
+    return (
+        <div>
+            <Header />
+            <Button />
+        </div>
+    )
+}
+export default App
+
+from Button.js ->
+import React from "react"
+import {ThemeContextConsumer} from "./themeContext"
+
+function Button(props) {
+    return (
+        <ThemeContextConsumer>
+            {theme => (
+                <button className={`${theme}-theme`}>Switch Theme</button>
+            )}
+        </ThemeContextConsumer>
+    )    
+}
+export default Button
+
+from Header.js ->
+import React, {Component} from "react"
+import {ThemeContextConsumer} from "./themeContext"
+
+function Header(props) {
+    return (
+        <ThemeContextConsumer>
+            {theme => (
+                <header className={`${theme}-theme`}>
+                    <h2>{theme === "light" ? "Light" : "Dark"} Theme</h2>
+                </header>
+            )}
+        </ThemeContextConsumer>
+    )    
+}
+export default Header
+
+from index.js ->
+import React from "react"
+import ReactDOM from "react-dom"
+import App from "./App"
+import {ThemeContextProvider} from "./themeContext"
+
+ReactDOM.render(
+    <ThemeContextProvider>
+        <App />
+    </ThemeContextProvider>, 
+    document.getElementById("root")
+)
+
+from themeContext.js ->
+import React, {Component} from "react"
+const {Provider, Consumer} = React.createContext()
+
+class ThemeContextProvider extends Component {
+    render() {
+        return (
+            <Provider value={"dark"}>
+                {this.props.children}
+            </Provider>
+        )
+    }
+}
+export {ThemeContextProvider, Consumer as ThemeContextConsumer}
+
+________________________________________________________________________________________________
+6. CHANGING CONTEXT 
+
+On theme.Context.js, add state as a static property to hold the current theme and add a method for flipping the state between light and 
+dark. Also in render, update the hard-coded value to this.state.theme. Need to now pass the toggleTheme to any consumer that will be using
+the method. I can accomplish this by instead of passing down the string state, can also pass down an object. The value of the context can 
+be an object and inside object can have the state of theme and the toggleTheme method. 
+
+class ThemeContextProvider extends Component {
+    state = {
+        theme: "dark"               -> adding state as a static property to hold value for theme
+    }
+    
+    toggleTheme = () => {
+        this.setState(prevState => {
+            return {
+                theme: prevState.theme === "light" ? "dark" : "light"   ->flipping the state between light and dark
+            }
+        })
+    }
+    
+    render() {
+        return (
+            //<Provider value={this.state.theme}>    ->passing the value prop, the value of state which = the string 'dark'
+            <Provider value={{theme: this.state.theme, toggleTheme: this.toggleTheme}}>  ->passing down object with theme and toggle method. 
+                {this.props.children}
+            </Provider>
+        )
+    }
+}
+
+Because value used to be a string and is now an object, now need to update Button.js to correctly use the value the consumer is receiving. 
+Before was using a string called theme and using the theme in the button. Now, the theme that the Button is receiving is an object and has
+a property called theme. To avoid confusion, update the function name to context and the reference in button context.theme. Also 
+added onclick event to button so that when you click the button, it updates the theme. Context is an object that is receiving a 
+theme property which is a string but is also receiving the toggleTheme method. When clicking the button it will change the state inside of
+the Provider (themeContext.js) which will then provide the consumer a new version of state, going from light to dark or dark to light, which
+will then re-render the consumer (<ThemeContextConsumer>), and update all of the consumers using this state from the provider.  
+
+function Button(props) {
+    return (
+        <ThemeContextConsumer>
+            {theme => (
+                <button className={`${theme}-theme`}>Switch Theme</button>
+            )}
+        </ThemeContextConsumer>
+    )    
+}
+
+function Button(props) {
+    return (                    
+        <ThemeContextConsumer>
+            {context => (           -> receiving object, renaming to context because object has a property called theme  
+                 <button onClick={context.toggleTheme} className={`${context.theme}-theme`}>Switch
+            )}
+        </ThemeContextConsumer>
+    )    
+}
+
+Go to Header and the function name to context and change references to theme to context.theme to bring in the new version of state from 
+themeContext.js 
+
+function Header(props) {
+    return (
+        <ThemeContextConsumer>
+            {theme => (
+                <header className={`${theme}-theme`}>
+                    <h2>{theme === "light" ? "Light" : "Dark"} Theme</h2>
+                </header>
+            )}
+        </ThemeContextConsumer>
+    )    
+}
+
+function Header(props) {
+    return (
+        <ThemeContextConsumer>
+            {context => (                                                              ->updated to context
+                <header className={`${context.theme}-theme`}>                          ->updated to bring in new version of state
+                    <h2>{context.theme === "light" ? "Light" : "Dark"} Theme</h2>      ->updated to bring in new version of state
+                </header>
+            )}
+        </ThemeContextConsumer>
+    )    
+}
+
+This is a very small application where I am only rendering 2 components. In a real world example, I would likely put state in my
+App and pass state down thru props to the Header and Button. But this example shows the power of having an App component that doesn't 
+know anything about the data but has consumers below it in the subtree that can access the data independent from props. 
+
+function App() {
+    return (
+        <div>
+            <Header />   ->will likely pass state down thru props here in a real-world app
+            <Button />
+        </div>
+    )
+}
+
+ReactDOM.render(
+    <ThemeContextProvider>
+        <App />       -> App calls instances of Header and Button does not know anything about the data that is passed down in subtree
+    </ThemeContextProvider>, 
+    document.getElementById("root")
+)
+
+Final code below. 
+
+from App.js ->
+import React from "react"
+import Header from "./Header"
+import Button from "./Button"
+
+function App() {
+    return (
+        <div>
+            <Header />
+            <Button />
+        </div>
+    )
+}
+export default App
+
+from Button.js ->
+import React from "react"
+import {ThemeContextConsumer} from "./themeContext"
+
+function Button(props) {
+    return (
+        <ThemeContextConsumer>
+            {context => (  -> calling function context. receiving object from class ThemeContextProvider (themeContext.js). object has 2 properties 
+                <button onClick={context.toggleTheme} className={`${context.theme}-theme`}>Switch Theme</button>  ->uses both properties
+            )}
+        </ThemeContextConsumer>
+    )    
+}
+export default Button
+
+from Header.js ->
+import React, {Component} from "react"
+import {ThemeContextConsumer} from "./themeContext"
+
+function Header(props) {
+    return (
+        <ThemeContextConsumer>
+            {context => (  -> calling function context. receiving object from class ThemeContextProvider (themeContext.js). object has 2 properties 
+                <header className={`${context.theme}-theme`}>
+                    <h2>{context.theme === "light" ? "Light" : "Dark"} Theme</h2>
+                </header>
+            )}
+        </ThemeContextConsumer>
+    )    
+}
+export default Header
+
+from index.js ->
+import React from "react"
+import ReactDOM from "react-dom"
+import App from "./App"
+import {ThemeContextProvider} from "./themeContext"
+
+ReactDOM.render(
+    <ThemeContextProvider>
+        <App />   -> App calls instances of Header and Button does not know anything about the data that is passed down in subtree
+    </ThemeContextProvider>, 
+    document.getElementById("root")
+)
+
+from themeContext.js ->
+import React, {Component} from "react"
+const {Provider, Consumer} = React.createContext()   ->deconstructuring the Provider and Consumer properties from createContext()
+
+class ThemeContextProvider extends Component {
+    state = {                                                   ->adding state as a static property 
+        theme: "dark"
+    }
+    
+    toggleTheme = () => {
+        this.setState(prevState => {
+            return {
+                theme: prevState.theme === "light" ? "dark" : "light"  ->flipping the state between light and dark
+            }
+        })
+    }
+    
+    render() {
+        return (
+            <Provider value={{theme: this.state.theme, toggleTheme: this.toggleTheme}}>  ->passing down object with theme and toggle method. Value will be caught by the consumers in Header and Button
+                {this.props.children}
+            </Provider>
+        )
+    }
+}
+export {ThemeContextProvider, Consumer as ThemeContextConsumer}  -> exporting ThemeContextProvider class and Consumer from createContext(). Consumer used in Header and Button 
+
+from CSS ->
+body {
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    padding: 20px;
+}
+
+button {
+    padding: 10px;
+    border: none;
+    margin: 10px;
+}
+
+.dark-theme {
+    background-color: #333333;
+    color: whitesmoke;
+}
+
+.light-theme {
+    background-color: whitesmoke;
+    color: #333333;
+}
+________________________________________________________________________________________________
+6A. CONTEXT PRACTICE 3
+
+
+
 */
 
