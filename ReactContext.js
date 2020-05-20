@@ -809,7 +809,20 @@ ReactDOM.render(
     document.getElementById("root")
 )
 
-Final code below. 
+Final code below. ***********************************************************
+
+from index.js ->
+import React from "react"
+import ReactDOM from "react-dom"
+import App from "./App"
+import {ThemeContextProvider} from "./themeContext"
+
+ReactDOM.render(
+    <ThemeContextProvider>
+        <App />   -> App calls instances of Header and Button does not know anything about the data that is passed down in subtree
+    </ThemeContextProvider>, 
+    document.getElementById("root")
+)
 
 from App.js ->
 import React from "react"
@@ -819,7 +832,7 @@ import Button from "./Button"
 function App() {
     return (
         <div>
-            <Header />
+            <Header />    ->calling instance of Header and Button
             <Button />
         </div>
     )
@@ -857,19 +870,6 @@ function Header(props) {
     )    
 }
 export default Header
-
-from index.js ->
-import React from "react"
-import ReactDOM from "react-dom"
-import App from "./App"
-import {ThemeContextProvider} from "./themeContext"
-
-ReactDOM.render(
-    <ThemeContextProvider>
-        <App />   -> App calls instances of Header and Button does not know anything about the data that is passed down in subtree
-    </ThemeContextProvider>, 
-    document.getElementById("root")
-)
 
 from themeContext.js ->
 import React, {Component} from "react"
