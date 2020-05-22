@@ -303,15 +303,15 @@ are considered side effects of the component because their main job is to not to
 
 Can use useEffect() to change the color of a number every time the button to increment it is clicked. useEffect() also comes from the React
 package and can import it with {useEffect}. The way to include a useEffect() to the component is to call useEffect(). useEffect() provides
-a callback function where logic goes. For the colors, imported a package called randomcolor(). When randomcolor() is a function and when 
+a callback function where logic goes. For the colors, imported a package called randomcolor(). The randomcolor() is a function and when 
 called, it returns a hex color. Need to add a new piece of state that for saving and updating the color. Can do this by starting with 
 useState(). Here, I am destructuring array to pull out state variable color and function setColor and initializing color to a blank string.  
-    -> const [color, setColor] = useState("")
+    -> const [color, setColor] = useState("") -> initial value array will change from [null, f()] to ["", setColor()]
 
 Function now has a state variable called color, so can now set style of h1 to have a color of color. 
      <h1 style={{color: color}}>{count}</h1>
 
-In useEffect(), the callback function is where I can set up the effects. This will use setColo() to generate a random color. what happening 
+In useEffect(), the callback function is where I can set up the effects. This will use setColor() to generate a random color. what happening 
 with useEffect() is that every time component renders (info in between the divs in return statement), its calling the useEffect() function. 
 And that function is setting the state of the color, which in turn is calling a re-render and is infinitely looping this way. This looks like 
 a bug on the page. In componentDidUpdate, had the option to grab the previous props/previous state and compare them to current props/current
@@ -319,7 +319,7 @@ state in order to manually decide if something should run. useEffect() has a ver
 apply. 
 
  useEffect(() => {
-        setColor(randomcolor())  -> this will cause an infinite loop because color is changes every time function called. 
+        setColor(randomcolor())  -> no 2nd parameter. this will cause an infinite loop because color is changes every time function called. 
     })
     
 The 1st paramenter in useEffect is the callback function. The 2nd parameter is an array. Inside of array, I can specify what variable I want
@@ -376,6 +376,33 @@ function App() {
     )
 }
 export default App
+
+CSS ->
+div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+h1 {
+    font-size: 3em;
+}
+
+button {
+    border: 1px solid lightgray;
+    background-color: transparent;
+    padding: 10px;
+    border-radius: 4px;   
+}
+
+button:hover {
+    cursor: pointer;
+}
+
+button:focus {
+    outline:0;
+}
 _____________________________________________________________________________________________________________________________________
 6. useEffect() PART2
 
@@ -399,7 +426,7 @@ is called, a brand new SetInterval is setup. And because looking for changes in 
 variable, it was setting up a new interval every time. So the 1st time it went from 0 to 1, then from 1 to 3. This is because setCount() was
 called 2x because there were 2 intervals running. Then it went from 3 to 7, going up by 4, then by 8, then by 16 then by 32 and so forth.  
 
-  useEffect(() => {
+  useEffect(() => {  -> will cause a bug in this state. will have multiple versions of interval running at same time. 
         setInterval(() => {
             setCount(prevCount => prevCount + 1)
         }, 1000)
@@ -458,7 +485,7 @@ function App() {
     const [count, setCount] = useState(0)
     const [color, setColor] = useState("")
     
-    useEffect(() => {   -> acting 
+    useEffect(() => {   
         const intervalId = setInterval(() => {
             setCount(prevCount => prevCount + 1)
         }, 1000)
@@ -478,6 +505,372 @@ function App() {
 export default App
 _____________________________________________________________________________________________________________________________________
 7. SPEED TYPING GAME INTRO
+
+In the code, user can set the amount of time he/she wants the game to last. The text area is disabled when the game is not being played. 
+When the game is started, the text area automatically receives focus and lets the user start typing right away. When time runs out, the
+text area greys out and the number of words typed in the given time is displayed. The start button becomes disabled when the game is 
+running. Project will use the useState() hook, useEffect() hook, useRef() hook and a custom hook. 
+_____________________________________________________________________________________________________________________________________
+8. SPEED TYPING GAME PART1
+
+ * Build the basic structure of the game
+ * 
+ * 1. <h1> title at the top
+ * 2. <textarea> for the box to type in 
+ *      (tip: React normalizes <textarea /> to be more like <input />, 
+ *      so it can be used as a self-closing element and uses the `value` property
+ *      to set its contents)
+ * 3. <h4> ti display the amount of time remaining
+ * 4. <button> to start the game
+ * 5. Another <h1> to display the word count
+ * 
+
+import React from "react"
+function App() {
+    return (
+        <div>
+            <h1>How fast do you type?</h1>
+            <textarea />
+            <h4>Time reminaing: ???</h4>
+            <button>Start</button>
+            <h1>Word count: ???</h1>
+        </div>
+    )
+}
+export default App
+_____________________________________________________________________________________________________________________________________
+9. SPEED TYPING GAME PART2
+
+*Using hooks, track the state of the text in the textarea on every keystroke. To verify it's working, you could just console.log the 
+state on every change. 
+ 
+ Import {useState} from React in order to track state. 
+ Set up useState() variable and function:  const [text, setText] = useState("")
+
+ To have state update every keystroke inside of textarea, need an onChange event listener and the event listener will accept a 
+ handleChange function. The handleChange() function will accept an event. Need to grab the event in order to get the current value 
+ of the input box, which is pulled out of event.target or e.target. Next, I need the handleChange() function to update state. I can 
+ use the function setText() to update state. The text I want state to have is the current value of the input box. The way controlled
+ forms work is now I need to set the value={text}. And 'text' is aligned to the array thats returned from useState() 
+    const [text, setText] = useState("")
+ 
+So now, every time I type a character in the box, it updated state and the state got console logged because function got re-rendered and 
+therefore console log ran again.  
+
+function App() {
+    const [text, setText] = useState("")
+    
+    function handleChange(e) {
+        const {value} = e.target
+        setText(value)
+    }
+    
+    console.log(text)
+    
+    return (
+        <div>
+            <h1>How fast do you type?</h1>
+            <textarea
+                onChange={handleChange}
+                value={text}
+            />
+            <h4>Time remaining: ???</h4>
+            <button>Start</button>
+            <h1>Word count: ???</h1>
+        </div>
+    )
+}
+export default App
+_____________________________________________________________________________________________________________________________________
+10. SPEED TYPING GAME PART3
+
+*Create a function to calculate the number of separate words in the `text` state For now, just console.log the word count when the 
+button gets clicked to test it out.
+ 
+Create a method/function to calculate the word count. To prevent possibility of potentially mutating the text variable in state, will pass 
+the text variable as a parameter in the word count calculation function. Passing as a parameter prevents the function from working 
+directly with the text variable in state and limits any changes to the text variable within the calculate word count function. To count 
+the number of words, can create a words array by splitting the text, and can split on a space. When a space is found in a text string, it 
+will add a new item to the array that results from calling split(). Can now return wordsArray.length which will return the number of words
+between the spaces.  
+
+   function calculateWordCount(text) {
+        const wordsArr = text.split(" ")
+        console.log(wordsArr.length)
+        return wordsArr.length
+    }
+    
+Can test this by clicking the button, so will need an onClick event. Can't just call the function because the event listener is going to pass
+an event to the function. So will need to run an anonymous function and have it call calculateWordCount. The function calculateWordCount()
+will pass in text, which will refer the the text in state. 
+ 
+<button onClick={calculateWordCount}>Start</button> -> incorrect 
+
+<button onClick={() => calculateWordCount(text)}>Start</button> correct
+
+This results in a bug. If I add a space somewhere within the text area, that space is counted as an extra word. For example, if I type the
+word something followed by a space, whats returned is and array with the word something and an empty string. And if I type an empty space
+before and after the word something, will get an array with 2 empty strings. 
+
+console.log(wordsArr) returns ["Something", ""]. 
+console.log(wordsArr) returns ["", "Something", ""]. 
+
+Can use the method trim() to fix this. trim() removes whitespace from around the string. 
+
+    function calculateWordCount(text) {
+        const wordsArr = text.trim().split(" ")
+        console.log(wordsArr)
+        return wordsArr.length
+    }
+
+Almost there, but still have another bug. If I hit the button w/o anything in the text area, what's returned is an array with an empty 
+string. This means the array has a length of 1 even though there is nothing typed in the box. A solution is to filter out any items in 
+the array that are an empty string. Or because this occurs when box is empty, can check to see if the 1st item in the array is an empty 
+string, if so, return 0. To use filter approach, instead of returning wordsArr.length, and return a value for filteredWords, which needs 
+to be created. With filter method, pass in callback function with conditional that only interested in words that are not equal to an empty
+string and return the length of the filteredWord. 
+
+  function calculateWordCount(text) {
+        const wordsArr = text.trim().split(" ")
+        const filteredWords = wordsArr.filter(word => word !== "")
+        return filteredWords.length
+    }
+OR return the array that comes back from wordsArr.filter() and tack on .length
+
+ function calculateWordCount(text) {
+        const wordsArr = text.trim().split(" ")
+        return wordsArr.filter(word => word !== "").length
+    }
+
+Revised Code ****************************************************
+
+import React, {useState} from "react"
+
+function App() {
+    const [text, setText] = useState("")
+    
+    function handleChange(e) {
+        const {value} = e.target
+        setText(value)
+    }
+    
+    function calculateWordCount(text) {
+        const wordsArr = text.trim().split(" ")
+        return wordsArr.filter(word => word !== "").length
+    }
+    
+    return (
+        <div>
+            <h1>How fast do you type?</h1>
+            <textarea
+                onChange={handleChange}
+                value={text}
+            />
+            <h4>Time remaining: ???</h4>
+            <button onClick={() => console.log(calculateWordCount(text))}>Start</button>
+            <h1>Word count: ???</h1>
+        </div>
+    )
+}
+export default App
+_____________________________________________________________________________________________________________________________________
+11. SPEED TYPING GAME PART4
+
+*1. Create state to hold the current value of the countdown timer. Display this time in the "Time Remaining" header. 
+*2. Set up an effect that runs every time the `timeRemaining` changes The effect should wait 1 second, then decrement the 
+timeRemaining` by 1. 
+*3. Make it so the effect won't run if the time is already at 0
+
+Import useEffect and call useEffect() in the component. useEffect() takes 2 parameters, 1st a function and 2nd is optional, but is an array
+of variables that I want to run the effect if these variables change -> useEffect(() => {}, [timeRemaining]). The 2nd variable tells 
+useEffect() when to run. 
+
+Within the body of the function, will use setTimeout(), which also takes 2 parameters, 1st is a function and other is how long I want to 
+wait to run the function, which in this case is 1 second. setTimeout works by waiting 1 second and then run the function. 
+
+    useEffect(() => {
+        setTimeout(() => {}, 1000)
+    }, [timeRemaining])
+
+What I want the setTimeout to do is decrement the time remaining. Can use setTimeRemaining function from state. Will need to know what the 
+previous time was, so can use the function (in this case called time). Design function...whatever the time was, need to provide a new time
+which is the old time minus 1. 
+
+   useEffect(() => {
+        setTimeout(() => {
+            setTimeRemaining(time => time - 1)
+        }, 1000)
+    }, [timeRemaining])
+    
+To summarize what's happening here...useEffect() will run as the component 1st mounts. And it will run anytime the timeRemaining changes.
+can use setTimeout() to wait 1 second, run the setTimeRemaining function which will change the state by reducing time by 1 second, 
+therefore re-render the component. That will run useEffect() again because timeRemaining has changed (array - 2nd parameter of useEffect),
+which will then again wait 1 second and reduced time by 1 second. 
+
+The countdown will work at this point, but currently do not have anything that tells countdown to stop at 0. Can address this with an if
+statement. This puts a stop condition so that the program will not re-render forever. 
+
+    useEffect(() => {
+        if(timeRemaining > 0) {
+            setTimeout(() => {
+                setTimeRemaining(time => time - 1)
+            }, 1000)
+        }
+    }, [timeRemaining])
+    
+Revised Code ***********************************************************************
+
+import React, {useState, useEffect} from "react"
+
+function App() {
+    const [text, setText] = useState("")
+    const [timeRemaining, setTimeRemaining] = useState(5)
+    
+    function handleChange(e) {
+        const {value} = e.target
+        setText(value)
+    }
+    
+    function calculateWordCount(text) {
+        const wordsArr = text.trim().split(" ")
+        return wordsArr.filter(word => word !== "").length
+    }
+    
+    useEffect(() => {
+        if(timeRemaining > 0) {
+            setTimeout(() => {
+                setTimeRemaining(time => time - 1)
+            }, 1000)
+        }
+    }, [timeRemaining])
+    
+    return (
+        <div>
+            <h1>How fast do you type?</h1>
+            <textarea
+                onChange={handleChange}
+                value={text}
+            />
+            <h4>Time remaining: {timeRemaining}</h4>
+            <button onClick={() => console.log(calculateWordCount(text))}>Start</button>
+            <h1>Word count: ???</h1>
+        </div>
+    )
+}
+export default App
+_____________________________________________________________________________________________________________________________________
+12. SPEED TYPING GAME PART5
+
+* Make it so clicking the Start button starts the timer instead of it starting on refresh
+*(Hint: use a new state variable to indicate if the game should be running or not)
+
+Currently the timer starts as soon as the app is refreshed. I want to update the program to start time when the button is clicked. 
+Create a new state variable called isTimeRunning and update useEffect() with new state variable. Want to check if time is running and 
+if time remaining is > 0. 
+ 
+const [isTimeRunning, setIsTimeRunning] = useState(false)
+
+   useEffect(() => {
+        if(isTimeRunning && timeRemaining > 0) {
+            setTimeout(() => {
+                setTimeRemaining(time => time - 1)
+            }, 1000)
+        }
+    }, [timeRemaining])
+    
+With the button, should be able to replace console.log with a call to setIsTimeRunning() and set value to true. 
+    <button onClick={() => setIsTimeRunning(true)}>Start</button>
+
+However, when Start button is clicked, nothing happens. This is a tricky bug to figure out but it comes back to understanding how useEffect()
+works. The second parameter in useEffect(()=>{},[timeRemaining]) is an array of dependencies. And this array of dependencies tells 
+useEffect() when it should run. In this case, only going to re-run useEffect() if [timeRemaining] changes. Clicking the start button is not
+changing [timeRemaining] instead its changing the other piece of state isTimeRunning. Consequently, can add a new dependency to instructing
+useEffect() to also watch for isTimeRunning and if isTimeRunning changes, then run useEffect() again. That should trigger setTimeout() which
+should rerun useEffect() over until timeRemaining is no longer > than 0. 
+
+    useEffect(() => {
+        if(isTimeRunning && timeRemaining > 0) {
+            setTimeout(() => {
+                setTimeRemaining(time => time - 1)
+            }, 1000)
+        }
+    }, [timeRemaining, isTimeRunning])
+    
+The button now begins timer and the timer stops at 0 as expected. However, the isTimeRunning boolean is still set to true even though time 
+is done. Now need to change isTimeRunning back to false. Can use else/if to change isTimeRunning back to false when it = to 0. This will 
+not change anything visibly on the screen. But it will be important to have isTimeRunning correctly set as this will be needed with other 
+parts of the program. When I run setIsTimeRunning() and change the state, because I am looking at isTimeRunning for changes, useEffect()
+does run one last time. However, during the last run, it does not satisfy the if or else if statement. 
+
+
+      useEffect(() => {
+        if(isTimeRunning && timeRemaining > 0) {
+            setTimeout(() => {
+                setTimeRemaining(time => time - 1)
+            }, 1000)
+        } else if(timeRemaining === 0) {
+            setIsTimeRunning(false)
+        }
+    }, [timeRemaining, isTimeRunning])
+    
+If else is used, will not run last time and will get same results. Else if preferred because its a bit more verbose. 
+
+    useEffect(() => {
+        if(isTimeRunning && timeRemaining > 0) {
+            setTimeout(() => {
+                setTimeRemaining(time => time - 1)
+            }, 1000)
+        } else {
+            setIsTimeRunning(false)
+        }
+    }, [timeRemaining, isTimeRunning])
+    
+Revised Code *****************************************************************************
+
+import React, {useState, useEffect} from "react"
+
+function App() {
+    const [text, setText] = useState("")
+    const [timeRemaining, setTimeRemaining] = useState(2)
+    const [isTimeRunning, setIsTimeRunning] = useState(false)
+    
+    function handleChange(e) {
+        const {value} = e.target
+        setText(value)
+    }
+    
+    function calculateWordCount(text) {
+        const wordsArr = text.trim().split(" ")
+        return wordsArr.filter(word => word !== "").length
+    }
+    
+    useEffect(() => {
+        if(isTimeRunning && timeRemaining > 0) {
+            setTimeout(() => {
+                setTimeRemaining(time => time - 1)
+            }, 1000)
+        } else if(timeRemaining === 0) {
+            setIsTimeRunning(false)
+        }
+    }, [timeRemaining, isTimeRunning])
+    
+    return (
+        <div>
+            <h1>How fast do you type?</h1>
+            <textarea
+                onChange={handleChange}
+                value={text}
+            />
+            <h4>Time remaining: {timeRemaining}</h4>
+            <button onClick={() => setIsTimeRunning(true)}>Start</button>
+            <h1>Word count: ???</h1>
+        </div>
+    )
+}
+export default App
+_____________________________________________________________________________________________________________________________________
+13. SPEED TYPING GAME PART6
+
 
 
 */
