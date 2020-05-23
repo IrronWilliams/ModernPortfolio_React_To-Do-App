@@ -538,6 +538,48 @@ function App() {
     )
 }
 export default App
+
+CSS **********************************************************************
+html, body {
+    background: black;
+    color: #00b800;
+    margin:0;
+    padding: 0;
+    padding-top: 10px;
+    font-family: 'Press Start 2P', cursive;
+    text-align: center;
+}
+
+body {
+    font-weight: 400;
+}
+
+button {
+    font-family: 'Press Start 2P', cursive;
+    display: block;
+    margin: 0 auto;
+    border: none;
+    background: #a80020;
+    background: #00b800;
+    padding: 10px 20px;
+    text-transform: uppercase;
+}
+
+h1 {
+    font-size: 20px;
+    text-align:center;
+}
+
+textarea {
+    font-family: 'Press Start 2P', cursive;
+    border: 3px solid black;
+    width: 90%;
+    margin: 0 auto;
+    outline: none;
+    height: 200px;
+    background: #00b800;
+    padding: 10px;
+}
 _____________________________________________________________________________________________________________________________________
 9. SPEED TYPING GAME PART2
 
@@ -870,6 +912,668 @@ function App() {
 export default App
 _____________________________________________________________________________________________________________________________________
 13. SPEED TYPING GAME PART6
+
+*1. When the timer reaches 0, count the number of words the user typed in and display it in the "Word count" section. 
+*2. After the game ends, make it so the user can click the Start button again to play a second time. 
+
+
+Begin by creating a new variable in state for the wordCount which starts at 0.  Logic in useEffect() hook already determines when the 
+game ends, which is when the timer stops at 0. Also, calculateWordCount() method calculates the word count. Can use the setWordCount()
+function in state to update word count based on how many words were calculated. Within useEffect(), create a new variable where results
+are when calculateWordCount() is called with the text that is saved in state. Then can setWordCount() based upon number of words. Or 
+can put in one line say..setWordCount based upon whatever gets returned from calling calculateWordCount().
+    const numWords = calculateWordCount(text)
+    setWordCount(numWords)
+    setWordCount(calculateWordCount(text))  -> alternative more concise option to put all in 1 line. 
+    <h1>Word count: {wordCount}</h1>  -> make sure to add wordCount from state. 
+
+So now after the game ends, when timer = 0, the total # of words will display. When game is over, cannot currently use the Start button 
+to initiate a new game. Upon reviewing the code when the button is clicked, just setting isTimeRunning = true. But clicking the button does 
+change the amount of time remaining. Therefore the if statement is not passing the condition isTimeRunning = true.   
+    <button onClick={() => setIsTimeRunning(true)}>Start</button>
+
+Can create another function to manage this called startGame(). Can move the setIsTimeRunning(true) from the button and replace with the 
+startGame() method. 
+    <button onClick={startGame}>Start</button>
+
+Within startGame(), can reset timer with setTimeRemaining() equal to value of when game starts. 
+ 
+function startGame() {
+        setIsTimeRunning(true)
+        setTimeRemaining(5)
+    } 
+Now program calculates the number of words after the timer gets to 0. When the Start button is clicked, the timer starts back with value of
+5 and begins to count down. But words in the box remains. For this, can set the text back to an empty string when the timer restarts after
+the Start button is clicked. 
+
+  function startGame() {
+        setIsTimeRunning(true)
+        setTimeRemaining(5)
+        setText("")
+    }
+
+Can now create a function called endGame(). Actually ending of the game occurs in useEffect() so can take part of the code in useEffect(),
+(setIsTimeRunning(false), setWordCount(calculateWordCount(text))) and paste into the endGame() function. And within useEffect() call endGame(). 
+This way, will make it easier to add updates for starting or ending the game. 
+
+    function endGame() {
+        setIsTimeRunning(false)
+        setWordCount(calculateWordCount(text))
+    }
+
+   useEffect(() => {
+        if(isTimeRunning && timeRemaining > 0) {
+            setTimeout(() => {
+                setTimeRemaining(time => time - 1)
+            }, 1000)
+        } else if(timeRemaining === 0) {
+            endGame()
+        }
+    }, [timeRemaining, isTimeRunning])
+        
+
+Made great progress but there are still some quirks in the game. 1st, the user clicks the Start button and then has to click in the textarea
+to begin typing. Another thing thats impacting the user experience is when user types in textarea and has to click Start to clear the text. 
+Another quirk is when the Start button is clicked repeatedly, the Time Remaining numbers begin to freak out even become negative. Could avoid
+the negative numbers by adjusting else if(timeRemaining === 0) in useEffect(). What's happening with multiple consecutive clicks of Start is
+the startGame() function is staring multiple times by setting TimeRunning to true, and putting the TimeRemaining above 0 but creating many 
+versions of useEffect() and setTimeout(). So its setting state a bunch of times in parallel and causing a bug. A solution to address this 
+is to disable the Start button while the game is running. 
+
+Buttons have a disable property. The button can be disabled when a condition is true. Here, I want to make sure the button is disabled when
+the time is running, if isTimeRunning true, the button should be disabled. 
+<button 
+                onClick={startGame}
+                disabled={isTimeRunning}
+            >
+                Start
+</button> 
+
+With page refresh, click Start, the button shows disabled and will not be able to click when Time Remaining is running. When Time Remaining 
+shows 0, button becomes active. Then setTimeRunning goes back to false in the endGame() function, setIsTimeRunning(false). And button is 
+re-enabled. 
+
+Textarea also has a disabled property. A user can cheat by typing words in textarea before the game actually begins. Can disable the textarea
+if the time in not running. This will prevent user from typing before game starts. 
+
+    <textarea
+        onChange={handleChange}
+        value={text}
+        disabled={!isTimeRunning}
+    />
+
+Revised program **********************************************************************
+
+import React, {useState, useEffect} from "react"
+
+function App() {
+    const STARTING_TIME = 5
+    
+    const [text, setText] = useState("")
+    const [timeRemaining, setTimeRemaining] = useState(STARTING_TIME)
+    const [isTimeRunning, setIsTimeRunning] = useState(false)
+    const [wordCount, setWordCount] = useState(0)
+    
+    function handleChange(e) {
+        const {value} = e.target
+        setText(value)
+    }
+    
+    function calculateWordCount(text) {
+        const wordsArr = text.trim().split(" ")
+        return wordsArr.filter(word => word !== "").length
+    }
+    
+    function startGame() {
+        setIsTimeRunning(true)
+        setTimeRemaining(STARTING_TIME)
+        setText("")
+    }
+    
+    function endGame() {
+        setIsTimeRunning(false)
+        setWordCount(calculateWordCount(text))
+    }
+   
+    useEffect(() => {
+        if(isTimeRunning && timeRemaining > 0) {
+            setTimeout(() => {
+                setTimeRemaining(time => time - 1)
+            }, 1000)
+        } else if(timeRemaining === 0) {
+            endGame()
+        }
+    }, [timeRemaining, isTimeRunning])
+    
+    return (
+        <div>
+            <h1>How fast do you type?</h1>
+            <textarea
+                onChange={handleChange}
+                value={text}
+                disabled={!isTimeRunning}
+            />
+            <h4>Time remaining: {timeRemaining}</h4>
+            <button 
+                onClick={startGame}
+                disabled={isTimeRunning}
+            >
+                Start
+            </button>
+            <h1>Word count: {wordCount}</h1>
+        </div>
+    )
+}
+export default App
+
+Revised CSS with changes to text area and button when disabled **********************************************************************
+html, body {
+    background: black;
+    color: #00b800;
+    margin:0;
+    padding: 0;
+    padding-top: 10px;
+    font-family: 'Press Start 2P', cursive;
+    text-align: center;
+}
+
+body {
+    font-weight: 400;
+}
+
+button {
+    font-family: 'Press Start 2P', cursive;
+    display: block;
+    margin: 0 auto;
+    border: none;
+    background: #a80020;
+    background: #00b800;
+    padding: 10px 20px;
+    text-transform: uppercase;
+}
+
+button:disabled {
+    cursor: not-allowed;
+}
+
+h1 {
+    font-size: 20px;
+    text-align:center;
+}
+
+textarea {
+    font-family: 'Press Start 2P', cursive;
+    border: 3px solid black;
+    width: 90%;
+    margin: 0 auto;
+    outline: none;
+    height: 200px;
+    background: #00b800;
+    padding: 10px;
+}
+
+textarea:disabled {
+    background-color: #a5a2a2;
+}
+_____________________________________________________________________________________________________________________________________
+14. USEREF()
+
+The useRef() hook allows me to keep values around for the entire lifespan of the component. Usually when people talk about useRef(), 
+they are referring to the ability to grab one of the DOM nodes and then make imperative changes to it. Below is a todo list held in the
+App component with a couple of pieces of state. newTodoValue/setNewTodoValue keeps track of the current value of the input form so that
+there is a controlled component. The next state variable is an array of todos. The function handleChange() grabs the value of input and 
+sets teh newTodoValue state to the value. The addTodo() function gets called when the button is clicked. Because the button is inside of
+the form set 'event.preventDefault()' which prevents the default of submitting the form when page is refreshed. Using spread operator to 
+provide all of the previous to do items and then to add a new to value to the list. Then sets the input box back to an empty string so the
+box is cleared for reuse. With const allTodos, they todos are mapped and displayed in the return section under the form.
+
+With current program, user can type a todo and hit enter to submit the todo. The todo will appear on the screen. This happens because the
+button is inside the form. But when user types another todo and instead of hitting enter, clicks the "Add todo item" button, the todo will
+appear on the screen. However, the focus shifts to the button and not the input box. Meaning, user will not be able to key additional todos. 
+Hitting enter did keep the focus inside the input box but clicking the button moved the focus outside the box. What I want to do is make it
+so that the input box receives focus automatically even if the button is clicked. 
+
+function App() {
+    const [newTodoValue, setNewTodoValue] = useState("")
+    const [todosList, setTodosList] = useState([])
+    
+    function handleChange(event) {
+        setNewTodoValue(event.target.value)
+    }
+    
+    function addTodo(event) {
+        event.preventDefault()
+        setTodosList(prevTodosList => [...prevTodosList, newTodoValue])
+        setNewTodoValue("")
+    }
+    
+    const allTodos = todosList.map(todo => <p key={todo}>{todo}</p>)
+    
+    return (
+        <div>
+            <form>
+                <input type="text" name="todo" value={newTodoValue} onChange={handleChange}/>
+                <button onClick={addTodo}>Add todo item</button>
+            </form>
+            {allTodos}
+        </div>
+    )
+}
+
+The process of focusing into the input box is an imperative command that I need to provide to the input DOM node. In React, need a way to
+reference the DOM node. In plain vanilla Javascript, you can provide the input an id attribute and use getElementByID(). Assuming this was
+inside of an component that could be re-used, the problem with adding an id is that there will be multiple elements on the screen that 
+have the same id. So instead will use Ref to grab the input element. 
+
+First thing is to import useRef hook from React. Then create a new variable that stores the value for the useRef() function with initial 
+value of null. 
+    const inputRef = useRef(null)
+
+DOM nodes in React automatically come with a prop called ref. I can tell ref that its going to be the acting inputRef. 
+    <input ref={inputRef} type="text" name="todo" value={newTodoValue} onChange={handleChange}/>
+
+In essence, when the App component renders, it will start as null because null is the initial value. Then when it renders the elements 
+in the div, it will see that the input has a ref attribute of inputRef. Now the const inputRef will become an object and that object 
+will have a property called .current and .current points to this DOM node: 
+     <input ref={inputRef} type="text" name="todo" value={newTodoValue} onChange={handleChange}/>
+
+So can console.log inputRef. inputRef is an object that has a current property and the value is the DOM node. 
+
+  function addTodo(event) {
+        event.preventDefault()
+        setTodosList(prevTodosList => [...prevTodosList, newTodoValue])
+        setNewTodoValue("")
+        console.log(inputRef)  -> returns {current: <input type="text" name="todo"value>}
+    }
+
+Can now access the inputRef and the current property. Input boxes have a method called focus(). This puts the focus back into the input
+box when user clicks the 'Add todo item' button. Similar to other hooks, useRef() allows me to access references to DOM nodes inside of 
+a functional component. 
+
+ function addTodo(event) {
+        event.preventDefault()
+        setTodosList(prevTodosList => [...prevTodosList, newTodoValue])
+        setNewTodoValue("")
+        inputRef.current.focus()  ->puts focus back into the input box
+    }
+
+Revised program ************************************************************************
+
+import React, {useState, useRef} from "react"
+
+function App() {
+    const [newTodoValue, setNewTodoValue] = useState("")
+    const [todosList, setTodosList] = useState([])
+    const inputRef = useRef(null)
+    
+    function handleChange(event) {
+        setNewTodoValue(event.target.value)
+    }
+    
+    function addTodo(event) {
+        event.preventDefault()                                              -> button in form, prevents bug when page refreshes 
+        setTodosList(prevTodosList => [...prevTodosList, newTodoValue])     ->takes previous items and adds new item to list
+        setNewTodoValue("")                                                 -> clears the input box by setting to empty string
+        inputRef.current.focus()                                            -> sets focus back on input box when button is clicked 
+    }
+    
+    const allTodos = todosList.map(todo => <p key={todo}>{todo}</p>)        ->maps each todo in an array 
+    
+    return (
+        <div>
+            <form>
+                <input ref={inputRef} type="text" name="todo" value={newTodoValue} onChange={handleChange}/>
+                <button onClick={addTodo}>Add todo item</button>
+            </form>
+            {allTodos}                                                      ->todos are displayed here 
+        </div>
+    )
+}
+export default App
+_____________________________________________________________________________________________________________________________________
+15. SPEED TYPING GAME PART7 - Ending State Complete (does not have custom hooks)
+
+*Make the input box focus (DOM elements have a method called .focus()) immediately when the game starts. 
+
+In this section, want to improve game by when clicking the Start button, would automatically move focus to the inside of the box. 
+Need to grab the DOM element for the input box and imperatively call the focus method. Begin by importing useRef and create an 
+instance of a ref called textBoxRef, const textBoxRef = useRef(null). And in textarea, can access the ref via ref={textBoxRef}. Now in
+the program/code, should be able to use textBoxRef as reference to the DOM element. Want to run the focus method at the beginning of the
+game so put focus in the startGame() function. Cant simply say textBoxRef.focus() because the actual DOM elements exists in current 
+property of the textBoxRef, so proper syntax is textBoxRef.current.focus(). Upon page refresh, it appears all is working until user hits
+the Start button and is unable to type into the box. This bug is occurring because currently the textarea is enabled when the time is 
+running. In other words, when the time is not running, the textarea is disabled.  
+
+<textarea
+    ref={textBoxRef}
+    onChange={handleChange}
+    value={text}
+    disabled={!isTimeRunning}
+/>
+
+And isTimeRunning is changing based upon a set state or a change in the state. However it is important to remember that React will change
+state asynchronously. Meaning it won't stop the other lines of code from happening while its in the process of changing state. As such, 
+problem is that its trying to focus on a disabled text area. This is so because after the code textBoxRef.current.focus() is run, it fails 
+because it can't focus on the box. Then shortly after it fails, (milliseconds later), setIsTimeRunning(true) runs, then enables the text 
+area. 
+
+  function startGame() {
+        setIsTimeRunning(true)   ->will run based upon change in state and state is changed asynchronously 
+        setTimeRemaining(STARTING_TIME) -> program will run during process of changing state. 
+        setText("")
+        textBoxRef.current.focus()
+    }
+A solution is to imperatively tell the textBoxRef to manually set its disable property to false. This is an asynchronous that will 
+successfully change the textarea to an enabled text area box, which will then allow the focus to happen. So now, when Start button is
+clicked, the focus goes to the text area. 
+
+  function startGame() {
+        setIsTimeRunning(true)
+        setTimeRemaining(STARTING_TIME)
+        setText("")
+        textBoxRef.current.disabled = false
+        textBoxRef.current.focus()
+    }
+
+Revised Program (ending state for project is complete. Project currently does not have custom hooks) ********************************
+
+import React, {useState, useEffect, useRef} from "react"
+
+function App() {
+    const STARTING_TIME = 5
+    
+    const [text, setText] = useState("")
+    const [timeRemaining, setTimeRemaining] = useState(STARTING_TIME)
+    const [isTimeRunning, setIsTimeRunning] = useState(false)
+    const [wordCount, setWordCount] = useState(0)
+    const textBoxRef = useRef(null)
+    
+    function handleChange(e) {
+        const {value} = e.target
+        setText(value)
+    }
+    
+    function calculateWordCount(text) {
+        const wordsArr = text.trim().split(" ")
+        return wordsArr.filter(word => word !== "").length
+    }
+    
+    function startGame() {
+        setIsTimeRunning(true)
+        setTimeRemaining(STARTING_TIME)
+        setText("")
+        textBoxRef.current.disabled = false
+        textBoxRef.current.focus()
+    }
+    
+    function endGame() {
+        setIsTimeRunning(false)
+        setWordCount(calculateWordCount(text))
+    }
+    
+    useEffect(() => {
+        if(isTimeRunning && timeRemaining > 0) {
+            setTimeout(() => {
+                setTimeRemaining(time => time - 1)
+            }, 1000)
+        } else if(timeRemaining === 0) {
+            endGame()
+        }
+    }, [timeRemaining, isTimeRunning])
+    
+    return (
+        <div>
+            <h1>How fast do you type?</h1>
+            <textarea
+                ref={textBoxRef}
+                onChange={handleChange}
+                value={text}
+                disabled={!isTimeRunning}
+            />
+            <h4>Time remaining: {timeRemaining}</h4>
+            <button 
+                onClick={startGame}
+                disabled={isTimeRunning}
+            >
+                Start
+            </button>
+            <h1>Word count: {wordCount}</h1>
+        </div>
+    )
+}
+export default App
+_____________________________________________________________________________________________________________________________________
+16. USECONTEXT()
+
+A. Here, the App component is rendering a Header and Button. 
+
+function App() {
+    return (
+        <div>
+            <Header />  -> rendering Header and Button 
+            <Button />
+        </div>
+    )
+}
+
+B. The Button is receiving a Consumer from Context and then rendering the ThemeContextConsumer which uses the render props pattern by 
+providing a child as a function. And will provide the value of the context and use the context to toggle the theme and use theme to 
+display either the light or dark theme. When button is clicked, it not only switches theme of button but also theme of the header. 
+
+import {ThemeContextConsumer} from "./themeContext"  -> receiving Consumer from Context
+
+function Button(props) {
+    return (
+        <ThemeContextConsumer>                      -> rendering ThemeContextConsumer
+            {context => (                           -> using render prop patter by providing a child as a function (calling it context)
+                <button onClick={context.toggleTheme} className={`${context.theme}-theme`}>Switch Theme</button>
+            )}
+        </ThemeContextConsumer>
+    )    
+}
+
+C. With header, similar process as Button. Using ThemeContextConsumer and render props pattern 
+
+import {ThemeContextConsumer} from "./themeContext"
+
+function Header(props) {
+    return (
+        <ThemeContextConsumer>
+            {context => (
+                <header className={`${context.theme}-theme`}>
+                    <h2>{context.theme === "light" ? "Light" : "Dark"} Theme</h2>
+                </header>
+            )}
+        </ThemeContextConsumer>
+    )    
+}
+
+Since using these as functional components, the useContext() hook will make life so much nicer. Starting with Header.js, import useContext. 
+In the Header function, bring in the context object via a variable called context. With context, passing in a value that is an object 
+that has a theme property and a toggleTheme property. This is how passing the value object in themeContext.js:
+    <Provider value={{theme: this.state.theme, toggleTheme: this.toggleTheme}}>
+
+Need to provide useContext() the full context object. When the full context object was created with createContext(), what's returned is an
+object with 2 properties, Provider and Consumer. Usually destructured them to make use of the variable easier. 
+    const {Provider, Consumer} = React.createContext()
+
+But will need the full object when passing into useContext(). Consequently in themeContext.js will not be able to destructure and pull in 
+the entire object when importing createContext. And adjust the instance of the Provider from 'Provider' to 'ThemeContext.Provider'. And no 
+longer need to export the Consumer but need to export the ThemeContext. 
+
+import React, {Component} from "react"
+const ThemeContext = React.createContext()
+
+class ThemeContextProvider extends Component {
+    state = {
+        theme: "dark"
+    }
+    
+    toggleTheme = () => {
+        this.setState(prevState => {
+            return {
+                theme: prevState.theme === "light" ? "dark" : "light"
+            }
+        })
+    }
+    
+    render() {
+        return (
+            <ThemeContext.Provider value={{theme: this.state.theme, toggleTheme: this.toggleTheme}}>
+                {this.props.children}
+            </ThemeContext.Provider>
+        )
+    }
+}
+export {ThemeContextProvider, ThemeContext}
+
+So back to Header, import {ThemeContext} and pass ThemeContext to useContext(). This passes the entire ThemeContext object that includes
+both the Provider and Consumer to useContext. This now allows me to remove the ThemeContextConsumer and can just have the header. This 
+revised code works because I am just grab the object from the variable context by saying useContext() and providing the context object. 
+
+import React, {useContext} from "react"
+import {ThemeContext} from "./themeContext"
+
+function Header(props) {
+    const context = useContext(ThemeContext)
+    return (
+        <header className={`${context.theme}-theme`}>
+            <h2>{context.theme === "light" ? "Light" : "Dark"} Theme</h2>
+        </header>
+    )    
+}
+export default Header
+
+Now need to update code in Button. 
+
+import React, {useContext} from "react"
+import {ThemeContext} from "./themeContext"
+
+function Button(props) {
+    const context = useContext(ThemeContext)
+    return (
+        <button 
+            onClick={context.toggleTheme} 
+            className={`${context.theme}-theme`}
+        >
+            Switch Theme
+        </button>
+    )    
+}
+export default Button
+
+With useContext(), I no longer have to worry about providing the consumer or using the render props pattern with the children function. Can
+now simply in one line grab the context value by using the UseContext() hook. 
+
+Final Code ************************************************************
+
+from App.js ->
+import React from "react"
+import Header from "./Header"
+import Button from "./Button"
+
+function App() {
+    return (
+        <div>
+            <Header />
+            <Button />
+        </div>
+    )
+}
+export default App
+
+from Button.js -> with destructuring 
+import React, {useContext} from "react"
+import {ThemeContext} from "./themeContext"
+
+function Button(props) {
+    const {theme, toggleTheme} = useContext(ThemeContext)  -> destructuring theme and toggleTheme properties 
+    return (
+        <button 
+            onClick={toggleTheme} 
+            className={`${theme}-theme`}
+        >
+            Switch Theme
+        </button>
+    )    
+}
+export default Button
+
+from Header.js ->
+import React, {useContext} from "react"
+import {ThemeContext} from "./themeContext"
+
+function Header(props) {
+    const {theme} = useContext(ThemeContext)  -> destructuring theme property
+    return (
+        <header className={`${theme}-theme`}>
+            <h2>{theme === "light" ? "Light" : "Dark"} Theme</h2>
+        </header>
+    )    
+}
+export default Header
+
+from themeContext.js  AS A CLASS BASED COMPONENT->
+import React, {Component} from "react"
+const ThemeContext = React.createContext()
+
+class ThemeContextProvider extends Component {
+    state = {
+        theme: "dark"
+    }
+    
+    toggleTheme = () => {
+        this.setState(prevState => {
+            return {
+                theme: prevState.theme === "light" ? "dark" : "light"
+            }
+        })
+    }
+    
+    render() {
+        return (
+            <ThemeContext.Provider value={{theme: this.state.theme, toggleTheme: this.toggleTheme}}>
+                {this.props.children}
+            </ThemeContext.Provider>
+        )
+    }
+}
+export {ThemeContextProvider, ThemeContext}
+
+from themeContext.js  AS A FUNCTIONAL COMPONENT->
+import React, {useState} from "react"
+const ThemeContext = React.createContext()
+
+function ThemeContextProvider(props) {
+    const [theme, setTheme] = useState("dark")
+    
+    function toggleTheme() {
+        setTheme(prevTheme => prevTheme === "light" ? "dark" : "light")
+    }
+    
+    return (
+        <ThemeContext.Provider value={{theme, toggleTheme}}>
+            {props.children}
+        </ThemeContext.Provider>
+    )
+}
+export {ThemeContextProvider, ThemeContext}
+
+from index.js ->
+import React from "react"
+import ReactDOM from "react-dom"
+
+import App from "./App"
+import {ThemeContextProvider} from "./themeContext"
+
+ReactDOM.render(
+    <ThemeContextProvider>
+        <App />
+    </ThemeContextProvider>, 
+    document.getElementById("root")
+)
+_____________________________________________________________________________________________________________________________________
+17. CUSTOM HOOKS 
 
 
 
