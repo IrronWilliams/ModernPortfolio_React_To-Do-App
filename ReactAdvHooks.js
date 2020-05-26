@@ -1575,7 +1575,671 @@ ReactDOM.render(
 _____________________________________________________________________________________________________________________________________
 17. CUSTOM HOOKS 
 
+There are 3 major topics to remember when thinking about structuring React code to make things more reusable or DRY:
+    1. React Children: for example, whatever will be props.children to the App component -> <App>whatever</App>
+    2. Higher Order Components (HOC), is a function that takes a component as a parameter and returns another 'improved' component.
+    3. Render props does away with HOC's. Render props give control of state/data to the component. But also give control of user interface and what should get rendered to whatever component is rendering the component that is using render props.  
 
+Hooks have allowed me to drastically simplify React code. With the ability to create custom hooks, can also simplify the reusability patterns
+mentioned above. Custom hooks are just another pattern I can use that stems from the built in React hooks. I can use this pattern to reuse
+certain code throughout the site.  
+
+Currently the App component is in charge of keeping track of the count state and the function to increment that state. And then 
+implementing the state in the UI. If for some reason, I wanted the counting logic to be implemented in another component, I can either at
+worst, copy/paste the logic into the other component, implement HOC or render props to obfuscate the logic to another component that can 
+keep track of the count and provide the service for me. BUT the easiest thing to do is to use a custom hook. 
+
+import React, {useState} from "react"
+
+function App() {   
+    const [count, setCount] = useState(0)
+    
+    function increment() {
+        setCount(prevCount => prevCount + 1)
+    }
+    
+    return (
+        <div>
+            <h1>The count is {count}</h1>
+            <button onClick={increment}>Add 1</button>
+        </div>
+    )
+} export default App
+
+To begin, create another file called useCounter.js. A convention is to apply camel case convention when naming custom hooks. In this file, 
+essentially just creating a function called useCounter. The function will initialize state, create any functions I need for 
+modifying the state and return whatever I want another component to have access to (count, increment) In this example, it will be the 
+count, which is the state, and a function used to increase the count. Will need to import {useState} from "react". Notice I am not 
+importing React because the custom hook is not going to be in charge of rendering any JSX. 
+
+
+import {useState} from "react"
+
+function useCounter() {
+
+    // initialize state
+    const [count, setCount] = useState(0)
+
+    // create any functions we need for modifying the state
+       function increment() {
+        setCount(prevCount => prevCount + 1)}
+
+    // return whatever we want another component to have access to (count, increment)
+    return {count: count, increment: increment}
+    return {count, increment} //because property and value are same, can use this shorthand. 
+}
+export default useCounter
+
+Want to return the count and the function called increment. In order to return both of these, can wrap in an object. The function
+useCounter is just a regular function. But is using the useState hook. Anytime I call useCounter, it will create a new instance of state. 
+
+Back in App.js, import useCounter and remove the state/counting logic out of the function body and replace with syntax to call useCounter().  
+useCounter() returns an object that has a count property and an increment property. So in App.js, what will be received when useCounter() 
+is called is an object with a property called count and a property called increment, which can be destructured after calling useCounter():
+    {count, increment} = useCounter()
+
+function App() {
+    const {count, increment} = useCounter()
+    
+    return (
+        <div>
+            <h1>The count is {count}</h1>
+            <button onClick={increment}>Add 1</button>
+        </div>
+    )
+}
+
+Back to useCounter.js, notice that useState is returning an array -> const [count, setCount] = useState(0). But the useCounter() function 
+returns an object -> return {count, increment}. useState returns an array because it allows me to call the 1st variable anything I want,
+in this case 'count'. However, returning an object doesn't provide a lot of flexibility to whomever is using the hook in useCounter. For
+example, if in App, I changed variable name to 'number', this will break the program because 'number' will be undefined because I 
+exported 'number' as 'count'. 
+
+function App() {
+    const {number, increment} = useCounter()
+    
+    return (
+        <div>
+            <h1>The count is {number}</h1>
+            <button onClick={increment}>Add 1</button>
+        </div>
+    )
+}
+
+This can be fixed if instead of exporting/returning an object -> return {count, increment}, I can update and return an array:
+    -> return [count, increment]. What this does is exports a count variable and increment function. And in App.js, when I destructure, 
+I can call the variables anything I want -> const [number, add] = useCounter(). Arrays don't work by named properties, work by index #s. 
+
+function App() {
+    const [number, add] = useCounter()  -> changed function name from increment to add. 
+    
+    return (
+        <div>
+            <h1>The count is {number}</h1>
+            <button onClick={add}>Add 1</button>
+        </div>
+    )
+}  
+
+Either returning/exporting an array or object works. Arrays provide more flexibility. But if more comfortable with objects, can perhaps
+write somewhere in the document that exporting an object that is receiving properties count and increment and these property names cannot
+change while using the custom hook. 
+
+Updated program*****************************************
+from App.js -> 
+import React, {useState} from "react"
+import useCounter from "./useCounter"
+
+function App() {
+    const [number, add] = useCounter()
+    
+    return (
+        <div>
+            <h1>The count is {number}</h1>
+            <button onClick={add}>Add 1</button>
+        </div>
+    )
+}
+export default App
+
+from App.js -> 
+import {useState} from "react"
+
+function useCounter() {
+    const [count, setCount] = useState(0)
+    
+    function increment() {
+        setCount(prevCount => prevCount + 1)
+    }
+    
+    return [count, increment]
+}
+export default useCounter
+_____________________________________________________________________________________________________________________________________
+18. CUSTOM HOOKS - REFACTOR TOGGLER
+
+Used the toggler to learn about HOC and render props. Toggler.js is a class based component with state and the toggle method. In the UI,
+calling this.props.render and passing to it the object with the on and toggle method. 
+
+import React, {Component} from "react"
+
+class Toggler extends Component {
+    state = {
+        on: this.props.defaultOnValue
+    }
+    
+    static defaultProps = {
+        defaultOnValue: false
+    }
+    
+    toggle = () => {
+        this.setState(prevState => ({on: !prevState.on}))
+    }
+    
+    render() {
+        return (
+            <div>
+                {this.props.render({
+                    on: this.state.on, 
+                    toggle: this.toggle
+                })}
+            </div>
+        )
+    }
+}
+export default Toggler 
+
+And with Favorite, the render prop with the UI nested inside of it is getting too nested and hard to follow/understand. A custom hook can
+be used to simplify. 
+
+function Favorite(props) {
+    return (
+        <Toggler render={
+            ({on, toggle}) => (
+                <div>
+                    <h3>Click heart to favorite</h3>
+                    <h1>
+                        <span 
+                            onClick={toggle}
+                        >
+                            {on ? "❤️" : "♡"}
+                        </span>
+                    </h1>
+                </div>
+            )
+        }/>
+    ) 
+}
+export default Favorite
+
+Create a new file called useToggler.js and import useState. Then create the state -> const [isToggledOn, setIsToggledOn] = useState(false). 
+Then create a function for easily flipping the isToggledOn value:
+   
+function toggle() {
+        setIsToggledOn(prev => !prev)
+    }
+
+Then decided what needs to be returned from the custom hook so that what's returned is useful for whatever component will be using this 
+hook, so the component using the hook will receive the goodies. Need to send the isToggleOn boolean and a way to change it's value via
+the function.  
+    -> return {isToggledOn, toggle}
+
+Current useToggler code**************************************
+
+import {useState} from "react"
+
+function useToggler() {
+    // Create the state
+    const [isToggledOn, setIsToggledOn] = useState(false)
+    
+    // Create a function for easily flipping the isToggledOn value
+    function toggle() {
+        setIsToggledOn(prev => !prev)
+    }
+    
+    // Return something useful for whatever component will be using this hook
+    return {isToggledOn, toggle}
+}
+export default useToggler
+
+Now head to Favorite.js, which is currently using the Toggler component which uses render props to give the on and toggle values to the 
+Toggler component so the Toggler component can use them. Now need to refactor Favorite so that is uses the custom hook instead of the 
+Toggler component. 
+
+Fist thing is to import the useToggler hook. Remember useToggler is just a function and when the function is called, should get in return
+a piece of state that is being maintained by the hook and away to flip the state. useToggler is returning an object and it specifically 
+states that the key is isToggledOn for this boolean. 
+
+Within the Favorite function, can call useToggler() and restructure at the same time -> const {isToggledOn, toggle} = useToggler(). 
+Can then remove the Toggler from the UI. 
+
+Current Favorite.js code**************************************
+
+import React, {Component} from "react"
+import Toggler from "./Toggler"
+import useToggler from "./useToggler"
+
+function Favorite(props) {
+    const {isToggledOn, toggle} = useToggler()
+    
+    return (
+        <div>
+            <h3>Click heart to favorite</h3>
+            <h1>
+                <span 
+                    onClick={toggle}
+                >
+                    {isToggledOn ? "❤️" : "♡"}
+                </span>
+            </h1>
+        </div>
+    ) 
+}
+export default Favorite
+
+In order to rename the variable names that are exported from useToggler, can return and array instead of an object from useToggler. 
+Back to useToggler.js, return an array instead of an object. ->  return [isToggledOn, toggle]. So now, index 0 is whatever the value 
+I am saving in the state variable isToggledOn. -> const [isToggledOn, setIsToggledOn] = useState(false). Inside useToggler, isToggleOn
+is at index 0. However, isToggledOn does not exist outside the file. Same goes with setIsToggledOn at index 1. 
+
+Back to Favorite.js, during restructuring, I can call the variables at index 0 and 1 whatever I want because isToggledOn and 
+setIsToggledOn do not exist in Favorite.js. As a result can be renamed. -> const [isFavorited, toggle] = useToggler(). 
+
+Favorite.js more flexible because custom hook useToggler is importing an array vs an object**************************************
+function Favorite(props) {
+    const [isFavorited, toggle] = useToggler()
+    
+    return (
+        <div>
+            <h3>Click heart to favorite</h3>
+            <h1>
+                <span 
+                    onClick={toggle}
+                >
+                    {isFavorited ? "❤️" : "♡"}
+                </span>
+            </h1>
+        </div>
+    ) 
+}
+
+Head to Menu.js and refactor component to use the custom hook/toggler. Begin by importing useToggler. Then destructure array that comes
+from calling useToggler function. Then remove the Toggler. 
+
+Current Menu.js code**************************************
+
+import React from "react"
+import useToggler from "./useToggler"
+
+function Menu(props) {
+    const [show, toggle] = useToggler()
+    
+    return (
+        <div>
+            <button onClick={toggle}>{show ? "Hide" : "Show"} Menu </button>
+            <nav style={{display: show ? "block" : "none"}}>
+                <h6>Signed in as Coder123</h6>
+                <p><a>Your Profile</a></p>
+                <p><a>Your Repositories</a></p>
+                <p><a>Your Stars</a></p>
+                <p><a>Your Gists</a></p>
+            </nav>
+        </div>
+    ) 
+}
+export default Menu
+
+Still on Menu.js. When I call useToggler(), its creating a new instance of the variables [show, toggle]. useToggler() is currently being
+called in Favorite.js and Menu.js and is creating an new instance of state for that component. In useToggler.js, because useToggler() is
+just a regular function and not a component that is accepting props or anything, I can pass to it whatever parameter I want. I can pass in
+a parameter called defaultOnValue and within state, instead of useState() defaulting to false, can default to whatever is passed to 
+useToggler(). 
+
+function useToggler(defaultOnValue) {
+    // Create the state
+    const [isToggledOn, setIsToggledOn] = useState(false)
+
+Back to Favorite.js, when using useToggler(), pass in parameter false, to say Favorites should start as false. 
+    function Favorite(props) {
+        const [isFavorited, toggle] = useToggler(false)
+
+Back to Menu.js, the value passed should be true, saying the Menu should start as true. 
+function Menu(props) {
+    const [show, toggle] = useToggler(true)
+
+Upon page refresh, the heart will not be favorited because started out as false. But the menu is shown because told to start as true. 
+
+Can also put in a default value in the event nothing was passed in Favorite and/or Menu. This can applied in useToggler.js by using 
+regular Javascript default parameters. 
+
+function useToggler(defaultOnValue = false) {
+    // Create the state
+    const [isToggledOn, setIsToggledOn] = useState(defaultOnValue)
+
+This is just scratching the surface of what I can do with custom hooks. Because they are not 'built] into React, they are a pattern that 
+has emerged, and can write whatever custom hook I want. Anytime I want logic that will be used throughout app, I can create a custom 
+hook for this. Don't recommend creating a custom hook to avoid adding state to a single component. Rather use custom hooks if there is 
+anything to reuse in multiple places. Custom hooks are a great way to provide capability to different parts of the app.  
+
+Final Program*******************************************************
+from App.js -> 
+import React from "react"
+import Menu from "./Menu"
+import Favorite from "./Favorite"
+
+function App() {
+    return (
+        <div>
+            <Menu />
+            <hr />
+            <Favorite />
+        </div>
+    )
+}
+export default App
+
+from Favorite.js ->
+import React, {Component} from "react"
+import useToggler from "./useToggler"
+
+function Favorite(props) {
+    const [isFavorited, toggle] = useToggler(false)
+    
+    return (
+        <div>
+            <h3>Click heart to favorite</h3>
+            <h1>
+                <span 
+                    onClick={toggle}
+                >
+                    {isFavorited ? "❤️" : "♡"}
+                </span>
+            </h1>
+        </div>
+    ) 
+}
+export default Favorite
+
+from Menu.js ->
+import React from "react"
+import useToggler from "./useToggler"
+
+function Menu(props) {
+    const [show, toggle] = useToggler(true)
+    
+    return (
+        <div>
+            <button onClick={toggle}>{show ? "Hide" : "Show"} Menu </button>
+            <nav style={{display: show ? "block" : "none"}}>
+                <h6>Signed in as Coder123</h6>
+                <p><a>Your Profile</a></p>
+                <p><a>Your Repositories</a></p>
+                <p><a>Your Stars</a></p>
+                <p><a>Your Gists</a></p>
+            </nav>
+        </div>
+    ) 
+}
+export default Menu
+
+from Toggler.js ->
+import React, {Component} from "react"
+
+class Toggler extends Component {
+    state = {
+        on: this.props.defaultOnValue
+    }
+    
+    static defaultProps = {
+        defaultOnValue: false
+    }
+    
+    toggle = () => {
+        this.setState(prevState => ({on: !prevState.on}))
+    }
+    
+    render() {
+        return (
+            <div>
+                {this.props.render({
+                    on: this.state.on, 
+                    toggle: this.toggle
+                })}
+            </div>
+        )
+    }
+}
+export default Toggler
+
+
+from useToggler.js ->
+import {useState} from "react"
+
+function useToggler(defaultOnValue = false) {
+    // Create the state
+    const [isToggledOn, setIsToggledOn] = useState(defaultOnValue)
+    
+    // Create a function for easily flipping the isToggledOn value
+    function toggle() {
+        setIsToggledOn(prev => !prev)
+    }
+    
+    // Return something useful for whatever component will be using this hook
+    return [isToggledOn, toggle]
+}
+export default useToggler
+
+from index.html ->
+<html>
+    <head>
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        <div id="root"></div>
+        <script src="index.pack.js"></script>
+    </body>
+</html>
+
+from index.js ->
+import React from "react"
+import ReactDOM from "react-dom"
+import App from "./App"
+ReactDOM.render(<App />, document.getElementById("root"))
+_____________________________________________________________________________________________________________________________________
+19. SPEED TYPING GAME - PART8
+ 
+* Move the "business logic" into a custom hook, which will provide any parts of state and any functions to this component to use.
+* Can easily tell which parts the component needs by looking at the variables being used inside the `return`ed markup. 
+
+Can use custom hooks to take a log of the business logic currently in App.js and offload it to a custom hook. 
+
+Begin by creating a folder called hooks and put in it a file called useWordGame.js Custom hooks are just a function. Copy/paste the logic
+from App.js into the function body of useWordGame. Import {useState, useEffect, useRef} from "react". Not returning any JSX so don't need
+to import React. There is a log of logic so need to expose the variables and functions that I am creating to any components that wants to 
+use the useWordGame hook. So when useWordGame is called, it should return a bunch of these variables that are necessary for the word game
+to continue working. 
+
+import {useState, useEffect, useRef} from "react"
+
+function useWordGame() {
+    const STARTING_TIME = 5
+    
+    const [text, setText] = useState("")
+    const [timeRemaining, setTimeRemaining] = useState(STARTING_TIME)
+    const [isTimeRunning, setIsTimeRunning] = useState(false)
+    const [wordCount, setWordCount] = useState(0)
+    const textBoxRef = useRef(null)
+    
+    function handleChange(e) {
+        const {value} = e.target
+        setText(value)
+    }
+    
+    function calculateWordCount(text) {
+        const wordsArr = text.trim().split(" ")
+        return wordsArr.filter(word => word !== "").length
+    }
+    
+    function startGame() {
+        setIsTimeRunning(true)
+        setTimeRemaining(STARTING_TIME)
+        setText("")
+        textBoxRef.current.disabled = false
+        textBoxRef.current.focus()
+    }
+    
+    function endGame() {
+        setIsTimeRunning(false)
+        setWordCount(calculateWordCount(text))
+    }
+    
+    useEffect(() => {
+        if(isTimeRunning && timeRemaining > 0) {
+            setTimeout(() => {
+                setTimeRemaining(time => time - 1)
+            }, 1000)
+        } else if(timeRemaining === 0) {
+            endGame()
+        }
+    }, [timeRemaining, isTimeRunning])
+}
+export default useWordGame
+
+It will be better to return/export an object in this case. Exporting an array is good when there are just 1 or 2 items that I want to rename
+to whatever I want. But I will be exporting a bunch from here. Just need to make sure I am using the same property name on App.js. 
+
+In App.js, I can look at the return markup and can determine that I will need the following:
+    textBoxRef ref, handleChange, text value, isTimeRunning, timeRemaining, startGame function and wordCount. 
+
+So my return statement for my custom hook is as follows. These values are now 'exposed' from the useWordGame hook.  
+    return {textBoxRef, handleChange, text, isTimeRunning, timeRemaining, startGame, wordCount}
+
+Back in App.js, I need to 'apply' the useWordGame hook. Begin by importing useWordGame. Want to tell App.js to give it all of the exported
+properties from useWordGame. Can do this calling the wordGame hook and by destrucuring at same time. useWordGame is truly a function but 
+React is using it as a hook under the hood. 
+
+function App() {
+    const {
+        textBoxRef, 
+        handleChange, 
+        text, 
+        isTimeRunning, 
+        timeRemaining, 
+        startGame, 
+        wordCount
+    } = useWordGame()
+
+Made a slight improvement to useWordGame by allowing the startingTime to be passed into the useWordGame() function, instead of hard-
+coding the value. Also providing default value of 10seconds to startingTime in the event its not provided. To provide a starting time, 
+got to App,js and pass in value of 5 to the useWordGame hook/function ->  = useWordGame(5). 
+
+This custom hook is an example of offloading business logic for a specific app or specific component to another hook. App.js offloads 
+a lot of the business logic to useWordGame. This allows App.js to really be focused on how to exactly use the 'tools' that were created 
+in the custom hook. The separation of concerns are important. 
+
+Revised Code for Speed Typing Game *********************************************************
+
+from useWordGame.js ->
+import {useState, useEffect, useRef} from "react"
+
+function useWordGame(startingTime = 10) {
+    const [text, setText] = useState("")
+    const [timeRemaining, setTimeRemaining] = useState(startingTime)
+    const [isTimeRunning, setIsTimeRunning] = useState(false)
+    const [wordCount, setWordCount] = useState(0)
+    const textBoxRef = useRef(null)
+    
+    function handleChange(e) {
+        const {value} = e.target
+        setText(value)
+    }
+    
+    function calculateWordCount(text) {
+        const wordsArr = text.trim().split(" ")
+        return wordsArr.filter(word => word !== "").length
+    }
+    
+    function startGame() {
+        setIsTimeRunning(true)
+        setTimeRemaining(startingTime)
+        setText("")
+        textBoxRef.current.disabled = false
+        textBoxRef.current.focus()
+    }
+    
+    function endGame() {
+        setIsTimeRunning(false)
+        setWordCount(calculateWordCount(text))
+    }
+    
+    useEffect(() => {
+        if(isTimeRunning && timeRemaining > 0) {
+            setTimeout(() => {
+                setTimeRemaining(time => time - 1)
+            }, 1000)
+        } else if(timeRemaining === 0) {
+            endGame()
+        }
+    }, [timeRemaining, isTimeRunning])
+    
+    return {textBoxRef, handleChange, text, isTimeRunning, timeRemaining, startGame, wordCount}
+}
+export default useWordGame
+
+from App.js ->
+import React, {useState, useEffect, useRef} from "react"
+import useWordGame from "./hooks/useWordGame"
+
+function App() {
+    const {
+        textBoxRef, 
+        handleChange, 
+        text, 
+        isTimeRunning, 
+        timeRemaining, 
+        startGame, 
+        wordCount
+    } = useWordGame(5)
+    
+    return (
+        <div>
+            <h1>How fast do you type?</h1>
+            <textarea
+                ref={textBoxRef}
+                onChange={handleChange}
+                value={text}
+                disabled={!isTimeRunning}
+            />
+            <h4>Time remaining: {timeRemaining}</h4>
+            <button 
+                onClick={startGame}
+                disabled={isTimeRunning}
+            >
+                Start
+            </button>
+            <h1>Word count: {wordCount}</h1>
+        </div>
+    )
+}
+export default App
+
+from index.js ->
+import React from "react"
+import ReactDOM from "react-dom"
+import App from "./App"
+ReactDOM.render(<App />, document.getElementById("root"))
+
+from index.html ->
+<html>
+    <head>
+        <link href="https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        <div id="root"></div>
+        <script src="index.pack.js"></script>
+    </body>
+</html>
 
 */
 
