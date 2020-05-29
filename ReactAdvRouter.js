@@ -177,7 +177,7 @@ App, can choose to render an instance of the Home and About components.
                 <Route path="/about" render={() => <About />} />
             </Switch>
 
-An even simpler approach is, instead of using render, I can pass the component to a prop called component. This does not create an instance
+An even simpler approach is, instead of using render, I can pass the function to a prop called component. This does not create an instance
 of the component but rather is passing the function itself. This works as a replacement for using the render prop. 
 
             <Switch>
@@ -235,8 +235,8 @@ import {BrowserRouter as Router} from "react-router-dom"
 import App from "./App"
 
 ReactDOM.render(
-    <Router>
-        <App />
+    <Router>             -> setting up the React Router in this way provides routing capabilities to the App 
+        <App />          
     </Router>,
     document.getElementById("root")
 )
@@ -394,7 +394,7 @@ function App() {
 }
 
 Here, goal is to get the Profile Info and Profile Setting components to appear on the page when the respective links are clicked. Can use
-Switch and Route. Switch allows me to puts some routes inside of it. And the route will determine if the component will display on the page. 
+Switch and Route. Switch allows me to put some routes inside of it. And the route will determine if the component will display on the page. 
 
 function Profile() {
     return (
@@ -455,6 +455,7 @@ function Profile() {
 Routes moved to App.js. The exact keyword was added to path="/". W/o exact, the profile/info and profile/settings routes will not work 
 because the 1st match of path="/profile" was found with the Profile component. Here, creating instances of Profile, Info and Settings and 
 these components will replace whats on the page and what will only display is the UI in their respective components. ->
+
 function App() {    
     return (
         <div>
@@ -721,8 +722,8 @@ function Profile() {                         ->hardcoded
     )
 }
 
-function Profile() {                                 ->useRouteMatch hook to make dynamic. 
-    const {path, url} = useRouteMatch()
+function Profile() {                                 
+    const {path, url} = useRouteMatch()                          ->useRouteMatch hook to make dynamic.
 
     return (
         <div>
@@ -871,6 +872,74 @@ function ServicesList() {
 export default ServicesList
 _____________________________________________________________________________________________________________________________________
 11. REACT ROUTER-REDIRECT
+
+The concept of the Redirect component in React router is simple to understand. However, the instances I will actually use the Redirect 
+component tend to be a bit more complex. The idea of a Redirect component is if it gets rendered by React, it will change the route 
+automatically. Redirect takes a property called 'to', which is the path for the redirect, such as  <Redirect to="/whatever" />.  Before 
+page refresh, the browsers has a path of '/'. With page refresh, the App component will load and will render the Redirect component which
+immediately will redirect the path to /whatever. In the browser, route immediately changes from '/' to '/whatever'. 
+
+function App() {        
+    return (
+        <div>
+            <Redirect to="/whatever" />
+        </div>
+    )
+}
+
+If I am simply trying to go to another location, I can use Link to wrap a button or a part of the page to go straight to another location. 
+I also have history object that I can use to push a new location if I need to programmatically push someone or move someone to a new route. 
+However, there are instances where the more declarative Redirect component can be helpful. Redirect can be used when dealing with some sort
+of authentication. 
+
+In this program, have a super basic navbar with links for Home and Private. Can click Home for the route / or Private for route /private. 
+When clicking Home, the h1 Home page message is displayed. When clicking Private, the Protected page is displayed. The state variable is
+used to check if a user has logged in, with a default value of false. In the private route, I can have a something that will conditionally
+render the h1 if a user is logged in. If user is logged in, render the h1. If user not logged in, redirect them the login page, where 
+route = '/login'. The path to '/login' is a login page that has a button to allow user to click button in order to login.  
+
+How this works is the isLoggedIn value is false. When user clicks the Private link/route, the ternary evaluates as false and the Redirect
+component directs user to the /login route. So /login will appear in the browser and user will be routed to a page with a button. When 
+button is clicked the state changes from false to true. Now when user clicks on the Private link, the ternary will evaluate as true and 
+the h1 'Protected page, must be logged in to be here' will render. 
+
+Redirect is another way to change the route a user is on. If the Redirect component is rendered, it will redirect user to the route the 
+component specifies. Will likely conditionally render the redirect when the state determines that user needs to be redirected to another 
+location. 
+
+Revised Code **********************************************
+import React, {useState} from "react"
+import {Link, Switch, Route, Redirect} from "react-router-dom"
+
+function App() {
+    const [isLoggedIn, setIsLoggedIn] = useState(false)
+    return (
+        <div>
+            <Link to="/">Home</Link>
+            <Link to="/private">Private</Link>
+            
+            <Switch>
+                <Route exact path="/">
+                    <h1>Home page, anyone is allowed here</h1>
+                </Route>
+                <Route path="/private">
+                    {
+                        isLoggedIn ?
+                        <h1>Protected page, must be logged in to be here</h1> :
+                        <Redirect to="/login" />
+                    }
+                </Route>
+                <Route path="/login">
+                    <button onClick={() => setIsLoggedIn(true)}>Log in</button>
+                </Route>
+            </Switch>
+        </div>
+    )
+}
+export default App
+
+
+
 
 
 */
