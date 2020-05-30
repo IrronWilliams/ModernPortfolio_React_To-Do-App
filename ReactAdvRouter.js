@@ -688,8 +688,7 @@ function ServicesList() {
     )
 }
 export default ServicesList
-_____________________________________________________________________________________________________________________________________
-9. REACT ROUTER-useRoutMatch
+
 
 The useRouteMatch hook can be used in a couple of different ways. When nesting links and routes, they are tightly coupled. Changing the
 link but not changing the corresponding will cause problems. Can use the useRouteMatch hook to address this. Can use this hook to grab info
