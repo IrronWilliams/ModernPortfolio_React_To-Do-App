@@ -37,7 +37,7 @@ ________________________________________________________________________________
 2. CONTEXT PROVIDER
 
 To create a new context, use the create context method that comes with the React package, React.createContext(). Context works around a 
-provider and a consumer. Will be wrapping the the component that I want to provide context to in the provider and any child component that
+provider and a consumer. Will be wrapping the component that I want to provide context to in the provider and any child component that
 I want to consume the context will be wrapped in a consumer. When I use create.Context() what I get back is whats called a compound 
 component. Which means ThemeContext is an object which has a couple of properties that are components. Meaning ThemeContext will have
 ThemeContext.Provider & ThemeContext.Consumer. There is a prop that I always have to pass to the provider called the value prop. And the 
